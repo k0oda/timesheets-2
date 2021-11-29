@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+  }
+
+  .form-signin .form-floating:focus-within {
+    z-index: 2;
+  }
+
+  .form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+</style>
+<div class="text-center" style="margin-top: 8%;">
+  <main class="form-signin">
+    <form method="POST" action="{% url 'sign_in' %}">
+      {% csrf_token %}
+      <h1 class="h3 mb-3 fw-normal">Sign in</h1>
+      <div class="form-floating">
+        <input name="email" type="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
+        <label for="floatingInput" class="text-dark">Email address</label>
+      </div>
+      <div class="form-floating">
+        <input name="password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+        <label for="floatingPassword" class="text-dark">Password</label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+      <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
+    </form>
+  </main>
+</div>
+{% endblock content %}

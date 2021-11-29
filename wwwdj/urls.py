@@ -20,6 +20,9 @@ from wwwdj import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    
     path("", views.index, name="index"),
+    
+    # Auth
+    path("sign_in/", views.sign_in, name="sign_in"),
+    path("sign_out/", views.sign_out, name="sign_out"),
 ]

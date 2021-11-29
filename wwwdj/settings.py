@@ -32,8 +32,6 @@ DJANGO_APPS = (
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.sitemaps",
-    "django.contrib.sites",
 )
 
 THIRD_PARTY_APPS = (
@@ -87,6 +85,12 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# Auth
+
+AUTH_USER_MODEL = "wwwdj.User"
+LOGIN_URL = "/sign_in/"
 
 
 # Password validation
