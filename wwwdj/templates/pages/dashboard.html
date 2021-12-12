@@ -10,13 +10,30 @@ Dashboard | Vidicode Timesheets
     <h3>Dashboard</h3>
   </div>
   <div class="col-auto">
-    <a class="btn btn-outline-success" href="#">
+    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#startWorkModal">
       <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#plus-lg"></use></svg>
-    </a>
+    </button>
+  </div>
+</div>
+<div class="modal fade" id="startWorkModal" tabindex="-1" aria-labelledby="startWorkModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="startWorkModalLabel">Confirm work start?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation the timer will be started
+        and new record will be created on current date
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <a class="btn btn-success" href="{% url 'start_work' %}">Confirm</a>
+      </div>
+    </div>
   </div>
 </div>
 <hr>
-<h5 class="mt-5 text-center">Week 1 <span class="fs-6 text-warning">(22.11 - 28.11)</span></h5>
+<h5 class="mt-5 text-center">Week 1</h5>
 <table class="table table-dark table-bordered table-striped mt-2">
   <thead>
     <tr>
@@ -26,16 +43,32 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 9%;">Total Hours</th>
       <th scope="col" style="width: 7%;">Earnings</th>
       <th scope="col" style="width: 50%;">Work Summary</th>
-      <th scope="col" class="text-center" style="width: 7%;">Actions</th>
+      <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
   </thead>
   <tbody>
+    {% for workday in workdays.0 %}
     <tr>
-      <th scope="row">Monday</span></th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
+      <th scope="row">
+        {{ workday.0 }}
+        <span class="small">{{ workday.0.date|date:"d.m.y" }}</span>
+      </th>
+      <td>
+        {% for record in workday.1 %}
+        {{ record.start_time|date:"G:i" }}
+        <br>
+        {% endfor %}
+      </td>
+      <td>
+        {% for record in workday.1 %}
+        {% if record.finish_time %}
+        {{ record.finish_time|date:"G:i" }}
+        {% endif %}
+        <br>
+        {% endfor %}
+      </td>
+      <td>{{ workday.2 }}</td>
+      <td>${{ workday.3 }}</td>
       <td>
         <table class="table table-dark mb-0">
           <thead>
@@ -45,248 +78,103 @@ Dashboard | Vidicode Timesheets
             </tr>
           </thead>
           <tbody>
+            {% for summary in workday.4 %}
             <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
+              <th scope="row">{{ summary.project }}</th>
+              <td>{{ summary.summary }}</td>
             </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
       </td>
       <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
+        {% if workday.1 %}
+        {% if not workday.1.last.stopped %}
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#stopWorkModal">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#stop-circle"></use></svg>
+        </button>
+        <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="stopWorkModalLabel">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                After your confirmation the timer will be stopped
+                and time of finish will be recorded, total hours and earnings also will be counted and recorded
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <a class="btn btn-success" href="{% url 'stop_work' workday.1.last.id %}">Confirm</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
-        <button class="btn btn-sm btn-outline-danger">
+        <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editWorkModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                Select an record to edit
+                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <a class="btn btn-success" href="#">Confirm</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
+        <div class="modal fade" id="deleteRecordModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="deleteRecordModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                Select an record to remove
+                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success delete">Confirm</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </td>
     </tr>
-    <tr>
-      <th scope="row">Tuesday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Wednesday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Thursday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-        <td class="align-middle text-center">
-          <button class="btn btn-sm btn-outline-light">
-            <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-          </button>
-          <button class="btn btn-sm btn-outline-danger">
-            <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-          </button>
-        </td>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Friday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Saturday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Sunday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
+    {% endfor %}
   </tbody>
-  <tfoot>
-    <tr>
-      <th scope="row">Total:</td>
-      <td></td>
-      <td></td>
-      <td>35</td>
-      <td>$525</td>
-    </tr>
-  </tfoot>
 </table>
-<h5 class="mt-5 text-center">Week 2 <span class="fs-6 text-warning">(29.11 - 05.12)</span></h5>
+{% if workdays.1 %}
+<h5 class="mt-5 text-center">Week 2</h5>
 <table class="table table-dark table-bordered table-striped mt-2">
   <thead>
     <tr>
@@ -296,16 +184,30 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 9%;">Total Hours</th>
       <th scope="col" style="width: 7%;">Earnings</th>
       <th scope="col" style="width: 50%;">Work Summary</th>
-      <th scope="col" class="text-center" style="width: 7%;">Actions</th>
+      <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
   </thead>
   <tbody>
+    {% for workday in workdays.1 %}
     <tr>
-      <th scope="row">Monday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
+      <th scope="row">
+        {{ workday.0 }}
+        <span class="small">{{ workday.0.date|date:"d.m.y" }}</span>
+      </th>
+      <td>
+        {% for record in workday.1 %}
+        {{ record.start_time|date:"G:i" }}
+        {% endfor %}
+      </td>
+      <td>
+        {% for record in workday.1 %}
+        {% if record.finish_time %}
+        {{ record.finish_time|date:"G:i" }}
+        {% endif %}
+        {% endfor %}
+      </td>
+      <td>{{ workday.2 }}</td>
+      <td>${{ workday.3 }}</td>
       <td>
         <table class="table table-dark mb-0">
           <thead>
@@ -315,257 +217,124 @@ Dashboard | Vidicode Timesheets
             </tr>
           </thead>
           <tbody>
+            {% for summary in workday.4 %}
             <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
+              <th scope="row">{{ summary.project }}</th>
+              <td>{{ summary.summary }}</td>
             </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
       </td>
       <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
+        {% if workday.1 %}
+        {% if not workday.1.last.stopped %}
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#stopWorkModal">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#stop-circle"></use></svg>
+        </button>
+        <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="stopWorkModalLabel">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                After your confirmation the timer will be stopped
+                and time of finish will be recorded, total hours and earnings also will be counted and recorded
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <a class="btn btn-success" href="{% url 'stop_work' workday.1.last.id %}">Confirm</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
-        <button class="btn btn-sm btn-outline-danger">
+        <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editWorkModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                Select an record to edit
+                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <a class="btn btn-success" href="#">Confirm</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
+        <div class="modal fade" id="deleteRecordModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="deleteRecordModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+              </div>
+              <div class="modal-body">
+                Select an record to remove
+                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success delete">Confirm</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </td>
     </tr>
-    <tr>
-      <th scope="row">Tuesday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Wednesday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Thursday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-        <td class="align-middle text-center">
-          <button class="btn btn-sm btn-outline-light">
-            <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-          </button>
-          <button class="btn btn-sm btn-outline-danger">
-            <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-          </button>
-        </td>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Friday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Saturday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Sunday</th>
-      <td>17:00</td>
-      <td>22:00</td>
-      <td>5</td>
-      <td>$75</td>
-      <td>
-        <table class="table table-dark mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 25%;">Project</th>
-              <th scope="col" style="width: 75%;">Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Advisorpedia</th>
-              <td>make footer</td>
-            </tr>
-            <tr>
-              <th scope="row">Lakewood</th>
-              <td>finish pages</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-      <td class="align-middle text-center">
-        <button class="btn btn-sm btn-outline-light">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        <button class="btn btn-sm btn-outline-danger">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-        </button>
-      </td>
-    </tr>
+    {% endfor %}
   </tbody>
-  <tfoot>
-    <tr>
-      <th scope="row">Total:</td>
-      <td></td>
-      <td></td>
-      <td>35</td>
-      <td>$525</td>
-    </tr>
-  </tfoot>
 </table>
+{% endif %}
 <hr class="mt-5">
 <div class="row justify-content-between mb-5">
   <div class="col-auto">
     <h4>Work Total:</h4>
   </div>
   <div class="col-auto">
-    <h5>70 hours</h5>
+    <h5>{{ total_hours }} hours</h5>
   </div>
   <div class="col-auto">
-    <h5>$1050</h5>
+    <h5>${{ total_earnings }}</h5>
   </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+<script>
+  $(function() {
+    $('.delete').click(function() {
+      var select = $(this).parent().prev().children('.form-select');
+      var selectedId = select.val();
+      window.location.href = '/delete_work/' + selectedId + '/';
+    });
+  })
+</script>
+{% endblock scripts %}
