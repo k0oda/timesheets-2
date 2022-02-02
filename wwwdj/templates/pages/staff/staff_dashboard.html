@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}
+Staff Panel | Vidicode Timesheets
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-between mt-5">
+  <div class="col-auto">
+    <h3>Staff Panel</h3>
+  </div>
+  <div class="col-auto">
+    <h3 class="d-inline">
+      {% if previous_session_number %}
+      <a href="{% url 'staff_dashboard' previous_session_number %}" class="btn btn-outline-secondary mb-1">
+        <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#chevron-left"></use></svg>
+      </a>
+      {% endif %}
+      {{ session.starting_date|date:"Y.m.d" }} - {{ session.finish_date|date:"Y.m.d" }}
+      {% if next_session_number %}
+      <a href="{% url 'staff_dashboard' next_session_number %}" class="btn btn-outline-secondary mb-1">
+        <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#chevron-right"></use></svg>
+      </a>
+      {% endif %}
+    </h3>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#signInvoiceModal">
+      <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#check-lg"></use></svg>
+      Sign Invoice
+    </button>
+  </div>
+</div>
+<div class="modal fade" id="signInvoiceModal" tabindex="-1" aria-labelledby="signInvoiceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="signInvoiceModalLabel">Confirm invoice sign?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation current work session
+        will be closed and invoice PDF file will be generated
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <a class="btn btn-success" href="#">Confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="row">
+  <div class="col-2">
+    <div class="d-flex flex-column flex-shrink-0 text-white bg-dark">
+      <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+          <a href="{% url 'totals' session.pk %}" class="nav-link text-white {% if not current_worker %}active{% endif %}" aria-current="page">
+            Totals
+          </a>
+        </li>
+        {% for worker in workers %}
+        <li class="nav-item">
+          <a href="{% url 'worker_timesheet' session.pk worker.pk %}" class="nav-link text-white {% if worker.pk == current_worker.pk %}active{% endif %}">
+            {{ worker }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% block tab_content %}
+  {% endblock %}
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  $(function() {
+    $('.delete').click(function() {
+      var select = $(this).parent().prev().children('.form-select');
+      var selectedId = select.val();
+      window.location.href = '/delete_work/' + selectedId + '/';
+    });
+  })
+</script>
+{% endblock scripts %}

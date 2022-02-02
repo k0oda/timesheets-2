@@ -31,4 +31,11 @@ urlpatterns = [
     path("start_work/", views.start_work, name="start_work"),
     path("stop_work/<int:record_id>/", views.stop_work, name="stop_work"),
     path("delete_work/<int:record_id>/", views.delete_work, name="delete_work"),
+
+    # Staff
+    path("dashboard/staff/", views.staff_dashboard, name="staff_dashboard"),
+    path("dashboard/staff/<int:session_number>/", views.staff_dashboard, name="staff_dashboard"),
+    path("dashboard/staff/<int:session_number>/<int:worker_number>/", views.staff_dashboard, name="staff_dashboard"),
+    path("dashboard/staff/totals/<int:session_number>/", views.totals, name="totals"),
+    path("dashboard/staff/worker/<int:session_number>/<int:worker_number>/", views.worker_timesheet, name="worker_timesheet"),
 ]
