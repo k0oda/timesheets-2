@@ -29,6 +29,7 @@ class Project(models.Model):
 class WorkSession(models.Model):
     starting_date = models.DateField(unique=True)
     finish_date = models.DateField(unique=True)
+    invoice = models.FileField(null=True)
     closed = models.BooleanField(default=False)
 
     def __str__(self):
@@ -47,20 +48,13 @@ class WorkDay(models.Model):
 class Record(models.Model):
     worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workday = models.ForeignKey(WorkDay, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     start_time = models.TimeField()
     finish_time = models.TimeField(blank=True, null=True)
     total_hours = models.SmallIntegerField(blank=True, null=True)
     earnings = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
+    summary = models.TextField()
     stopped = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.worker} - {self.workday} | {str(self.total_hours)}"
-
-
-class WorkSummary(models.Model):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    summary = models.TextField()
-
-    def __str__(self):
-        return f"{self.record.worker} - {self.project}"
