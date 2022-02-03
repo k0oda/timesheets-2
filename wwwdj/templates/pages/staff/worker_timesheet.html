@@ -1,4 +1,4 @@
-{% extends "pages/staff/staff_dashboard.html" %}
+{% extends "pages/staff/dashboard.html" %}
 
 {% block tab_content %}
 <div class="col-10">
@@ -6,13 +6,14 @@
   <table class="table table-dark table-bordered table-striped mt-2">
     <thead>
       <tr>
-        <th scope="col" style="width: 5%;">Day</th>
+        <th scope="col" style="width: 10%;">Day</th>
+        <th scope="col" style="width: 10%;">Project</th>
         <th scope="col" style="width: 8%;">Start Time</th>
         <th scope="col" style="width: 8%;">Finish Time</th>
         <th scope="col" style="width: 9%;">Total Hours</th>
         <th scope="col" style="width: 7%;">Earnings</th>
-        <th scope="col" style="width: 50%;">Work Summary</th>
-        <th scope="col" class="text-center" style="width: 10%;">Actions</th>
+        <th scope="col" style="width: 23%;">Work Summary</th>
+        <th scope="col" class="text-center" style="width: 8%;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -22,6 +23,12 @@
           {{ workday.0 }}
           <span class="small">{{ workday.0.date|date:"d.m.y" }}</span>
         </th>
+        <td>
+          {% for record in workday.1 %}
+          {{ record.project }}
+          <br>
+          {% endfor %}
+        </td>
         <td>
           {% for record in workday.1 %}
           {{ record.start_time|date:"G:i" }}
@@ -39,22 +46,11 @@
         <td>{{ workday.2 }}</td>
         <td>${{ workday.3 }}</td>
         <td>
-          <table class="table table-dark mb-0">
-            <thead>
-              <tr>
-                <th scope="col" style="width: 25%;">Project</th>
-                <th scope="col" style="width: 75%;">Summary</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for summary in workday.4 %}
-              <tr>
-                <th scope="row">{{ summary.project }}</th>
-                <td>{{ summary.summary }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% for record in workday.4 %}
+          {% if record.summary %}
+          {{ record.summary }}
+          {% endif %}
+          {% endfor %}
         </td>
         <td class="align-middle text-center">
           {% if workday.1 %}
@@ -147,13 +143,14 @@
   <table class="table table-dark table-bordered table-striped mt-2">
     <thead>
       <tr>
-        <th scope="col" style="width: 5%;">Day</th>
+        <th scope="col" style="width: 10%;">Day</th>
+        <th scope="col" style="width: 10%;">Project</th>
         <th scope="col" style="width: 8%;">Start Time</th>
         <th scope="col" style="width: 8%;">Finish Time</th>
         <th scope="col" style="width: 9%;">Total Hours</th>
         <th scope="col" style="width: 7%;">Earnings</th>
-        <th scope="col" style="width: 50%;">Work Summary</th>
-        <th scope="col" class="text-center" style="width: 10%;">Actions</th>
+        <th scope="col" style="width: 23%;">Work Summary</th>
+        <th scope="col" class="text-center" style="width: 8%;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -165,7 +162,14 @@
         </th>
         <td>
           {% for record in workday.1 %}
+          {{ record.project }}
+          <br>
+          {% endfor %}
+        </td>
+        <td>
+          {% for record in workday.1 %}
           {{ record.start_time|date:"G:i" }}
+          <br>
           {% endfor %}
         </td>
         <td>
@@ -178,22 +182,12 @@
         <td>{{ workday.2 }}</td>
         <td>${{ workday.3 }}</td>
         <td>
-          <table class="table table-dark mb-0">
-            <thead>
-              <tr>
-                <th scope="col" style="width: 25%;">Project</th>
-                <th scope="col" style="width: 75%;">Summary</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for summary in workday.4 %}
-              <tr>
-                <th scope="row">{{ summary.project }}</th>
-                <td>{{ summary.summary }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% for record in workday.4 %}
+          {% if record.summary %}
+          {{ record.summary }}
+          {% endif %}
+          <br>
+          {% endfor %}
         </td>
         <td class="align-middle text-center">
           {% if workday.1 %}

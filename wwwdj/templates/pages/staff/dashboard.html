@@ -43,7 +43,7 @@ Staff Panel | Vidicode Timesheets
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        <a class="btn btn-success" href="#">Confirm</a>
+        <button id="confirm-sign" class="btn btn-success">Confirm</btn>
       </div>
     </div>
   </div>
@@ -80,6 +80,12 @@ Staff Panel | Vidicode Timesheets
       var select = $(this).parent().prev().children('.form-select');
       var selectedId = select.val();
       window.location.href = '/delete_work/' + selectedId + '/';
+    });
+    $('#confirm-sign').click(function() {
+      window.location.href = '{% url "sign_invoice" session.pk %}';
+      setTimeout(function() {
+        window.location.href = '{% url "staff_dashboard" session.pk %}';
+      }, 500);
     });
   })
 </script>

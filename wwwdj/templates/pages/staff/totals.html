@@ -1,0 +1,46 @@
+{% extends "pages/staff/dashboard.html" %}
+
+{% block tab_content %}
+<div class="col-10">
+  <table class="table table-dark table-bordered table-striped mt-2">
+    <thead>
+      <tr>
+        <th scope="col" style="width: 25%;">Worker</th>
+        <th scope="col" style="width: 15%;">Total Hours</th>
+        <th scope="col" style="width: 15%;">Total Earnings</th>
+        <th scope="col" style="width: 15%;">Days Worked</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in work_records %}
+      <tr>
+        <td>
+          {{ record.0 }}
+        </td>
+        <td>
+          {{ record.1 }}
+        </td>
+        <td>
+          ${{ record.2 }}
+        </td>
+        <td>
+          {{ record.3 }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <hr class="mt-5">
+  <div class="row justify-content-between mb-5">
+    <div class="col-auto">
+      <h4>Session Total:</h4>
+    </div>
+    <div class="col-auto">
+      <h5>{{ session_total_hours }} hours</h5>
+    </div>
+    <div class="col-auto">
+      <h5>${{ session_total_earnings }}</h5>
+    </div>
+  </div>
+</div>
+{% endblock %}
