@@ -1,10 +1,18 @@
 import datetime
 
+from fpdf import FPDF, HTMLMixin
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
+from django.template.loader import render_to_string
 
 from wwwdj import models
+
+
+class HtmlPDF(FPDF, HTMLMixin):
+    pass
 
 
 # Service functions
@@ -49,10 +57,7 @@ def get_work_timesheet(session, worker):
             if record.total_hours:
                 total_hours += record.total_hours
                 earnings += record.earnings
-        summaries = models.WorkSummary.objects.filter(
-            record__in=records
-        )
-        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, total_hours, earnings, summaries])
+        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, total_hours, earnings])
         work_total_hours += total_hours
         work_total_earnings += earnings
     return (workdays, work_total_hours, work_total_earnings)
@@ -149,9 +154,15 @@ def dashboard(request):
 def staff_dashboard(request, session_number=None, worker_number=None):
     if request.user.is_staff:
         if worker_number:
-            return redirect("worker_timesheet", session_number, worker_number)
+            if session_number:
+                return redirect("worker_timesheet", session_number, worker_number)
+            else:
+                return redirect("worker_timesheet", worker_number)
         else:
-            return redirect("totals", session_number)
+            if session_number:
+                return redirect("totals", session_number)
+            else:
+                return redirect("totals")
     else:
         return redirect("dashboard")
 
@@ -169,6 +180,29 @@ def totals(request, session_number=None):
         except models.WorkSession.DoesNotExist:
             next_session_number = None
         workers = get_user_model().objects.all()
+        session_total_hours = 0
+        session_total_earnings = 0
+        work_records = []
+        for worker in workers:
+            work_total_hours = 0
+            work_total_earnings = 0
+            work_total_days = 0
+            for workday in session.workday_set.all().order_by("day_of_week"):
+                records = models.Record.objects.filter(
+                    worker=worker,
+                    workday=workday,
+                )
+                workday_worked = False
+                for record in records:
+                    if record.total_hours:
+                        workday_worked = True
+                        work_total_hours += record.total_hours
+                        work_total_earnings += record.earnings
+                if workday_worked:
+                    work_total_days += 1
+            work_records.append([worker, work_total_hours, work_total_earnings, work_total_days])
+            session_total_hours += work_total_hours
+            session_total_earnings += work_total_earnings
         return render(
             request,
             "pages/staff/totals.html",
@@ -177,6 +211,9 @@ def totals(request, session_number=None):
                 "previous_session_number": previous_session_number,
                 "next_session_number": next_session_number,
                 "workers": workers,
+                "work_records": work_records,
+                "session_total_hours": session_total_hours,
+                "session_total_earnings": session_total_earnings,
             }
         )
     else:
@@ -212,6 +249,24 @@ def worker_timesheet(request, worker_number, session_number=None):
                 "total_earnings": work_total_earnings,
             }
         )
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def sign_invoice(request, session_number):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        pdf = HtmlPDF()
+        pdf.add_page()
+        pdf.write_html(render_to_string("pdf/invoice.html"))
+        filename = f"Invoice_{session.pk}.pdf"
+        filepath = f"media/{filename}"
+        pdf.output(name=filepath, dest="F")
+        session.invoice = filepath
+        session.closed = True
+        session.save()
+        return FileResponse(open(filepath, "rb"), as_attachment=True, filename=filename)
     else:
         return redirect("dashboard")
 
