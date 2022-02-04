@@ -1,6 +1,6 @@
 import datetime
 
-from fpdf import FPDF, HTMLMixin
+from weasyprint import HTML, CSS
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -9,10 +9,6 @@ from django.http import FileResponse
 from django.template.loader import render_to_string
 
 from wwwdj import models
-
-
-class HtmlPDF(FPDF, HTMLMixin):
-    pass
 
 
 # Service functions
@@ -257,12 +253,25 @@ def worker_timesheet(request, worker_number, session_number=None):
 def sign_invoice(request, session_number):
     if request.user.is_staff:
         session = perform_session(session_number)
-        pdf = HtmlPDF()
-        pdf.add_page()
-        pdf.write_html(render_to_string("pdf/invoice.html"))
         filename = f"Invoice_{session.pk}.pdf"
         filepath = f"media/{filename}"
-        pdf.output(name=filepath, dest="F")
+        htmldoc = HTML(string=render_to_string("pdf/invoice.html"))
+        htmldoc.write_pdf(
+            target=filepath,
+            stylesheets=[CSS(
+                string=
+                """
+                @page {
+                    size: Letter;
+                    margin: 0;
+                }
+                body {
+                    display: block;
+                    margin: 0;
+                }
+                """
+            )]
+        )
         session.invoice = filepath
         session.closed = True
         session.save()
