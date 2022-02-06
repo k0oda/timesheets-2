@@ -38,6 +38,44 @@ def perform_session(session_number=None):
     return session
 
 
+def get_project_work(session_number, project_number):
+    session = models.WorkSession.objects.get(pk=session_number)
+    project = models.Project.objects.get(pk=project_number)
+    workers = get_user_model().objects.all()
+    work_records = {
+        "meta": {
+            "total_hours": 0,
+            "total_earnings": 0,
+        },
+        "records": [],
+    }
+    for worker in workers:
+        work_total_hours = 0
+        work_total_earnings = 0
+        work_total_days = 0
+        for workday in session.workday_set.all().order_by("day_of_week"):
+            records = models.Record.objects.filter(
+                worker=worker,
+                workday=workday,
+                project=project,
+            )
+            workday_worked = False
+            for record in records:
+                if record.total_hours:
+                    workday_worked = True
+                    work_total_hours += record.total_hours
+                    work_total_earnings += record.earnings
+            if workday_worked:
+                work_total_days += 1
+        if work_total_days == 0:
+            continue
+        work_record = [worker, work_total_hours, work_total_earnings, work_total_days]
+        work_records["meta"]["total_hours"] += work_total_hours
+        work_records["meta"]["total_earnings"] += work_total_earnings
+        work_records["records"].append(work_record)
+    return work_records
+
+
 def get_work_timesheet(session, worker):
     workdays = [[], []]
     work_total_hours = 0
@@ -47,19 +85,19 @@ def get_work_timesheet(session, worker):
             worker=worker,
             workday=workday,
         )
-        total_hours = 0
+        hours = 0
         earnings = 0
         for record in records:
             if record.total_hours:
-                total_hours += record.total_hours
+                hours += record.total_hours
                 earnings += record.earnings
-        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, total_hours, earnings])
-        work_total_hours += total_hours
+        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, hours, earnings])
+        work_total_hours += hours
         work_total_earnings += earnings
     return (workdays, work_total_hours, work_total_earnings)
 
 
-# Views
+# Worker-faced Views
 #
 
 def index(request):
@@ -98,7 +136,7 @@ def stop_work(request, record_id):
     )
     record.finish_time = current_datetime.time()
     record.total_hours = current_datetime.time().hour - record.start_time.hour
-    record.earnings = record.total_hours * record.worker.hour_rate
+    record.earnings = record.total_hours * (record.worker.hour_rate + record.project.hour_rate_increase)
     record.stopped = True
     record.save()
     return redirect("dashboard")
@@ -146,6 +184,9 @@ def dashboard(request):
     )
 
 
+# Staff Panel
+#
+
 @login_required
 def staff_dashboard(request, session_number=None, worker_number=None):
     if request.user.is_staff:
@@ -175,35 +216,22 @@ def totals(request, session_number=None):
             next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
         except models.WorkSession.DoesNotExist:
             next_session_number = None
+        projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         session_total_hours = 0
         session_total_earnings = 0
-        work_records = []
-        for worker in workers:
-            work_total_hours = 0
-            work_total_earnings = 0
-            work_total_days = 0
-            for workday in session.workday_set.all().order_by("day_of_week"):
-                records = models.Record.objects.filter(
-                    worker=worker,
-                    workday=workday,
-                )
-                workday_worked = False
-                for record in records:
-                    if record.total_hours:
-                        workday_worked = True
-                        work_total_hours += record.total_hours
-                        work_total_earnings += record.earnings
-                if workday_worked:
-                    work_total_days += 1
-            work_records.append([worker, work_total_hours, work_total_earnings, work_total_days])
-            session_total_hours += work_total_hours
-            session_total_earnings += work_total_earnings
+        work_records = {}
+        for project in projects:
+            project_work = get_project_work(session.pk, project.pk)
+            work_records[project.name] = project_work
+            session_total_hours += project_work["meta"]["total_hours"]
+            session_total_earnings += project_work["meta"]["total_earnings"]
         return render(
             request,
             "pages/staff/totals.html",
             {
                 "session": session,
+                "projects": projects,
                 "previous_session_number": previous_session_number,
                 "next_session_number": next_session_number,
                 "workers": workers,
@@ -228,6 +256,7 @@ def worker_timesheet(request, worker_number, session_number=None):
             next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
         except models.WorkSession.DoesNotExist:
             next_session_number = None
+        projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         current_worker = get_user_model().objects.get(pk=worker_number)
         workdays, work_total_hours, work_total_earnings = get_work_timesheet(session, current_worker)
@@ -236,6 +265,7 @@ def worker_timesheet(request, worker_number, session_number=None):
             "pages/staff/worker_timesheet.html",
             {
                 "session": session,
+                "projects": projects,
                 "previous_session_number": previous_session_number,
                 "next_session_number": next_session_number,
                 "workers": workers,
@@ -250,12 +280,22 @@ def worker_timesheet(request, worker_number, session_number=None):
 
 
 @login_required
-def sign_invoice(request, session_number):
+def sign_invoice(request, session_number, project_number):
     if request.user.is_staff:
         session = perform_session(session_number)
+        project = models.Project.objects.get(pk=project_number)
+        work_records = get_project_work(session.pk, project.pk)
+        page = render_to_string(
+            template_name="pdf/invoice.html",
+            context={
+                "session": session,
+                "project": project,
+                "work_records": work_records,
+            },
+        )
         filename = f"Invoice_{session.pk}.pdf"
         filepath = f"media/{filename}"
-        htmldoc = HTML(string=render_to_string("pdf/invoice.html"))
+        htmldoc = HTML(string=page)
         htmldoc.write_pdf(
             target=filepath,
             stylesheets=[CSS(
@@ -279,6 +319,9 @@ def sign_invoice(request, session_number):
     else:
         return redirect("dashboard")
 
+
+# Auth
+#
 
 def sign_in(request):
     if request.user.is_authenticated:

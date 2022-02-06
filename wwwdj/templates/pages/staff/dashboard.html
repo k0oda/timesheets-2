@@ -38,6 +38,13 @@ Staff Panel | Vidicode Timesheets
         <h5 class="modal-title" id="signInvoiceModalLabel">Confirm invoice sign?</h5>
       </div>
       <div class="modal-body">
+        <label for="project-select" class="form-label">Select a Project you wish to generate invoice for:</label>
+        <select class="form-select bg-dark text-light mb-3" id="project-select">
+          <option value="default" selected>Select a Project</option>
+          {% for project in projects %}
+          <option value="{{ project.pk }}">{{ project.name }}</option>
+          {% endfor %}
+        </select>
         After your confirmation current work session
         will be closed and invoice PDF file will be generated
       </div>
@@ -82,10 +89,15 @@ Staff Panel | Vidicode Timesheets
       window.location.href = '/delete_work/' + selectedId + '/';
     });
     $('#confirm-sign').click(function() {
-      window.location.href = '{% url "sign_invoice" session.pk %}';
-      setTimeout(function() {
-        window.location.href = '{% url "staff_dashboard" session.pk %}';
-      }, 1000);
+      var urlMask = '{% url "sign_invoice" session_number=session.pk project_number=0 %}';
+      selectValue = $('#project-select').children('option:selected').val();
+      if(selectValue !== "default") {
+        urlMask = urlMask.replace('0', selectValue);
+        window.location.href = urlMask;
+        setTimeout(function() {
+          window.location.href = '{% url "staff_dashboard" session.pk %}';
+        }, 1000);
+      }
     });
   })
 </script>
