@@ -320,6 +320,29 @@ def sign_invoice(request, session_number, project_number):
         return redirect("dashboard")
 
 
+@login_required
+def add_worker(request):
+    if request.user.is_staff:
+        if request.method == "POST":
+            is_staff = False
+            if "is_staff" in request.POST:
+                is_staff = True
+            worker = get_user_model().objects.create_user(
+                username=request.POST.get('username'),
+                email=request.POST.get('email'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name'),
+                hour_rate=request.POST.get('hour_rate'),
+                password=request.POST.get('password'),
+                is_staff=is_staff,
+            )
+            # worker.is_staff = is_staff
+            worker.save()
+        return redirect("staff_dashboard")
+    else:
+        return redirect("dashboard")
+
+
 # Auth
 #
 

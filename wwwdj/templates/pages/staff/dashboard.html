@@ -72,11 +72,63 @@ Staff Panel | Vidicode Timesheets
           </a>
         </li>
         {% endfor %}
+        <button class="btn btn-outline-success mt-4" data-bs-toggle="modal" data-bs-target="#addWorkerModal">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#person-plus-fill"></use></svg>
+          Add new worker
+        </button>
       </ul>
     </div>
   </div>
   {% block tab_content %}
   {% endblock %}
+</div>
+<div class="modal fade" id="addWorkerModal" tabindex="-1" aria-labelledby="addWorkerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <form action="{% url 'add_worker' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addWorkerModalLabel">Enter information about new worker</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-1">
+            <label for="username" class="col-form-label">Username:</label>
+            <input type="text" name="username" id="username" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="email" class="col-form-label">Email Address:</label>
+            <input type="email" name="email" id="email" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="first-name" class="col-form-label">First Name:</label>
+            <input type="text" name="first_name" id="first-name" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="last-name" class="col-form-label">Last Name:</label>
+            <input type="text" name="last_name" id="last-name" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="hour-rate" class="col-form-label">Hour Rate:</label>
+            <input type="number" name="hour_rate" id="hour-rate" min="1" value="10" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="col-form-label">Password:</label>
+            <input type="password" name="password" id="password" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" name="is_staff" role="switch" type="checkbox" value="" id="staff-check">
+            <label class="form-check-label" for="staff-check">
+              Is staff?
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Confirm</btn>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock content %}
 

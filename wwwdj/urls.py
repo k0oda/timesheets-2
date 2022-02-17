@@ -41,4 +41,5 @@ urlpatterns = [
     path("dashboard/staff/worker/<int:worker_number>/", views.worker_timesheet, name="worker_timesheet"),
     path("dashboard/staff/worker/<int:session_number>/<int:worker_number>/", views.worker_timesheet, name="worker_timesheet"),
     path("dashboard/staff/sign_invoice/<int:session_number>/<int:project_number>/", views.sign_invoice, name="sign_invoice"),
+    path("dashboard/staff/add_worker/", views.add_worker, name="add_worker"),
 ]
