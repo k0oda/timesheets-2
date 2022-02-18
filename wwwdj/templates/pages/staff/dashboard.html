@@ -61,10 +61,16 @@ Staff Panel | Vidicode Timesheets
     <div class="d-flex flex-column flex-shrink-0 text-white bg-dark">
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
-          <a href="{% url 'totals' session.pk %}" class="nav-link text-white {% if not current_worker %}active{% endif %}" aria-current="page">
+          <a href="{% url 'totals' session.pk %}" class="nav-link text-white {% if 'totals' in request.path %}active{% endif %}">
             Totals
           </a>
         </li>
+        <li class="nav-item">
+          <a href="{% url 'projects' session.pk %}" class="nav-link text-white {% if 'projects' in request.path %}active{% endif %}">
+            Projects
+          </a>
+        </li>
+        <hr>
         {% for worker in workers %}
         <li class="nav-item">
           <a href="{% url 'worker_timesheet' session.pk worker.pk %}" class="nav-link text-white {% if worker.pk == current_worker.pk %}active{% endif %}">
@@ -79,8 +85,10 @@ Staff Panel | Vidicode Timesheets
       </ul>
     </div>
   </div>
-  {% block tab_content %}
-  {% endblock %}
+  <div class="col-10">
+    {% block tab_content %}
+    {% endblock %}
+  </div>
 </div>
 <div class="modal fade" id="addWorkerModal" tabindex="-1" aria-labelledby="addWorkerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

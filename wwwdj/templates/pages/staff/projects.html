@@ -1,0 +1,106 @@
+{% extends "pages/staff/dashboard.html" %}
+
+{% block tab_content %}
+<div class="row mt-2">
+  <button class="col-auto btn btn-outline-success mx-auto" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+    <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#plus-lg"></use></svg>
+    Add new project
+  </button>
+</div>
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <form action="{% url 'add_project' session.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addProjectModalLabel">Enter information about the project</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-1">
+            <label for="name" class="col-form-label">Project Name:</label>
+            <input type="text" name="name" id="name" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="description" class="col-form-label">Description:</label>
+            <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required></textarea>
+          </div>
+          <div class="mb-1">
+            <label for="hour-rate-increase" class="col-form-label">Hour Rate Increase:</label>
+            <input type="number" name="hour_rate_increase" id="hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Confirm</btn>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% for project, work in projects_work.items %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card bg-dark">
+      <div class="card-body">
+        <h3 class="card-title">{{ project }}</h3>
+        <h6 class="card-subtitle mb-2">${{ project.hour_rate_increase }} hour rate increase</h6>
+        <hr>
+        <p class="card-text">{{ project.description }}</p>
+        <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ project.pk }}">Edit</button>
+        <button class="btn btn-outline-danger mt-2 float-end" data-bs-toggle="modal" data-bs-target="#deleteProjectModal_{{ project.pk }}">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="editProjectModal_{{ project.pk }}" tabindex="-1" aria-labelledby="editProjectModalLabel_{{ project.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <form action="{% url 'edit_project' session.pk project.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editProjectModalLabel_{{ project.pk }}">Edit information about the project</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-1">
+            <label for="name" class="col-form-label">Project Name:</label>
+            <input type="text" name="name" id="name" value="{{ project.name }}" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="description" class="col-form-label">Description:</label>
+            <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required>{{ project.description }}</textarea>
+          </div>
+          <div class="mb-1">
+            <label for="hour-rate-increase" class="col-form-label">Hour Rate Increase:</label>
+            <input type="number" name="hour_rate_increase" id="hour-rate-increase" min="0" value="{{ project.hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Confirm</btn>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="deleteProjectModal_{{ project.pk }}" tabindex="-1" aria-labelledby="deleteProjectModalLabel_{{ project.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteProjectModalLabel_{{ project.pk }}">Confirm project delete?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation the project will be
+        permanently deleted
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <a href="{% url 'delete_project' session.pk project.pk %}" class="btn btn-success">Confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

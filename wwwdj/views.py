@@ -245,6 +245,79 @@ def totals(request, session_number=None):
 
 
 @login_required
+def projects(request, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        try:
+            previous_session_number = models.WorkSession.objects.get(pk=session.pk - 1).pk
+        except models.WorkSession.DoesNotExist:
+            previous_session_number = None
+        try:
+            next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
+        except models.WorkSession.DoesNotExist:
+            next_session_number = None
+        projects = models.Project.objects.all()
+        workers = get_user_model().objects.all()
+        projects_work = {}
+        for project in projects:
+            projects_work[project] = get_project_work(session.pk, project.pk)["meta"]
+        return render(
+            request,
+            "pages/staff/projects.html",
+            {
+                "session": session,
+                "previous_session_number": previous_session_number,
+                "next_session_number": next_session_number,
+                "workers": workers,
+                "projects_work": projects_work,
+            }
+        )
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def add_project(request, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            project = models.Project.objects.create(
+                name = request.POST.get("name"),
+                description = request.POST.get("description"),
+                hour_rate_increase = request.POST.get("hour_rate_increase"),
+            )
+            project.save()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def edit_project(request, project_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            project = models.Project.objects.get(pk=project_number)
+            project.name = request.POST.get("name")
+            project.description = request.POST.get("description")
+            project.hour_rate_increase = request.POST.get("hour_rate_increase")
+            project.save()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def delete_project(request, project_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        models.Project.objects.get(pk=project_number).delete()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
 def worker_timesheet(request, worker_number, session_number=None):
     if request.user.is_staff:
         session = perform_session(session_number)
@@ -275,6 +348,60 @@ def worker_timesheet(request, worker_number, session_number=None):
                 "total_earnings": work_total_earnings,
             }
         )
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def add_worker(request, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            is_staff = False
+            if "is_staff" in request.POST:
+                is_staff = True
+            worker = get_user_model().objects.create_user(
+                username=request.POST.get('username'),
+                email=request.POST.get('email'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name'),
+                hour_rate=request.POST.get('hour_rate'),
+                password=request.POST.get('password'),
+                is_staff=is_staff,
+            )
+            worker.save()
+        return redirect("staff_dashboard", session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def edit_worker(request, worker_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            is_staff = False
+            if "is_staff" in request.POST:
+                is_staff = True
+            worker = get_user_model().objects.get(pk=worker_number)
+            worker.username=request.POST.get('username')
+            worker.email=request.POST.get('email')
+            worker.first_name=request.POST.get('first_name')
+            worker.last_name=request.POST.get('last_name')
+            worker.hour_rate=request.POST.get('hour_rate')
+            worker.is_staff=is_staff
+            worker.save()
+        return redirect("worker_timesheet", session.pk, worker_number)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def delete_worker(request, worker_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        get_user_model().objects.get(pk=worker_number).delete()
+        return redirect("staff_dashboard", session.pk)
     else:
         return redirect("dashboard")
 
@@ -316,29 +443,6 @@ def sign_invoice(request, session_number, project_number):
         session.closed = True
         session.save()
         return FileResponse(open(filepath, "rb"), as_attachment=True, filename=filename)
-    else:
-        return redirect("dashboard")
-
-
-@login_required
-def add_worker(request):
-    if request.user.is_staff:
-        if request.method == "POST":
-            is_staff = False
-            if "is_staff" in request.POST:
-                is_staff = True
-            worker = get_user_model().objects.create_user(
-                username=request.POST.get('username'),
-                email=request.POST.get('email'),
-                first_name=request.POST.get('first_name'),
-                last_name=request.POST.get('last_name'),
-                hour_rate=request.POST.get('hour_rate'),
-                password=request.POST.get('password'),
-                is_staff=is_staff,
-            )
-            # worker.is_staff = is_staff
-            worker.save()
-        return redirect("staff_dashboard")
     else:
         return redirect("dashboard")
 
