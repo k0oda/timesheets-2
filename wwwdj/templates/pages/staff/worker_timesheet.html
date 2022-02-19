@@ -127,31 +127,10 @@
       </td>
       <td class="align-middle text-center">
         {% if workday.1 %}
-        {% if not workday.1.last.stopped %}
-        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#stopWorkModal">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#stop-circle"></use></svg>
-        </button>
-        <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered text-start">
-            <div class="modal-content bg-dark">
-              <div class="modal-header">
-                <h5 class="modal-title" id="stopWorkModalLabel">Confirm work stop?</h5>
-              </div>
-              <div class="modal-body">
-                After your confirmation the timer will be stopped
-                and time of finish will be recorded, total hours and earnings also will be counted and recorded
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="{% url 'stop_work' workday.1.last.id %}">Confirm</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}">
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
+        {% if not session.closed %}
         <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
@@ -177,9 +156,11 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
+        {% endif %}
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
+        {% if not session.closed %}
         <div class="modal fade" id="deleteRecordModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="deleteRecordModalLabel_{{ workday.0.pk }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
@@ -205,6 +186,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
         {% endif %}
       </td>
     </tr>
@@ -264,31 +246,10 @@
       </td>
       <td class="align-middle text-center">
         {% if workday.1 %}
-        {% if not workday.1.last.stopped %}
-        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#stopWorkModal">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#stop-circle"></use></svg>
-        </button>
-        <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered text-start">
-            <div class="modal-content bg-dark">
-              <div class="modal-header">
-                <h5 class="modal-title" id="stopWorkModalLabel">Confirm work stop?</h5>
-              </div>
-              <div class="modal-body">
-                After your confirmation the timer will be stopped
-                and time of finish will be recorded, total hours and earnings also will be counted and recorded
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="{% url 'stop_work' workday.1.last.id %}">Confirm</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}">
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
+        {% if not session.closed %}
         <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
@@ -314,9 +275,11 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
+        {% endif %}
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
+        {% if not session.closed %}
         <div class="modal fade" id="deleteRecordModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="deleteRecordModalLabel_{{ workday.0.pk }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
@@ -342,6 +305,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
         {% endif %}
       </td>
     </tr>

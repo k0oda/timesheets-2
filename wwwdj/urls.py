@@ -55,4 +55,5 @@ urlpatterns = [
     path("dashboard/staff/add_worker/", views.add_worker, name="add_worker"),
     path("dashboard/staff/add_worker/<int:session_number>/", views.add_worker, name="add_worker"),
     path("dashboard/staff/sign_invoice/<int:session_number>/<int:project_number>/", views.sign_invoice, name="sign_invoice"),
+    path("dashboard/staff/invoice/<int:session_number>/<int:project_number>/", views.download_invoice, name="download_invoice"),
 ]

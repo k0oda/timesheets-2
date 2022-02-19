@@ -22,6 +22,8 @@ def perform_session(session_number=None):
         except models.WorkSession.DoesNotExist:
             try:
                 latest_session = models.WorkSession.objects.latest("finish_date")
+                if latest_session.closed:
+                    raise models.WorkSession.DoesNotExist
             except models.WorkSession.DoesNotExist:
                 session = models.WorkSession.objects.create(
                     starting_date=current_date - datetime.timedelta(days=current_date.weekday()),
@@ -223,7 +225,7 @@ def totals(request, session_number=None):
         work_records = {}
         for project in projects:
             project_work = get_project_work(session.pk, project.pk)
-            work_records[project.name] = project_work
+            work_records[project] = project_work
             session_total_hours += project_work["meta"]["total_hours"]
             session_total_earnings += project_work["meta"]["total_earnings"]
         return render(
@@ -412,15 +414,21 @@ def sign_invoice(request, session_number, project_number):
         session = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
         work_records = get_project_work(session.pk, project.pk)
+        invoice = models.ProjectInvoice.objects.create(
+            session=session,
+            project=project,
+            date=datetime.date.today(),
+        )
         page = render_to_string(
             template_name="pdf/invoice.html",
             context={
                 "session": session,
                 "project": project,
+                "invoice": invoice,
                 "work_records": work_records,
             },
         )
-        filename = f"Invoice_{session.pk}.pdf"
+        filename = f"Invoice_{invoice.pk}.pdf"
         filepath = f"media/{filename}"
         htmldoc = HTML(string=page)
         htmldoc.write_pdf(
@@ -439,10 +447,29 @@ def sign_invoice(request, session_number, project_number):
                 """
             )]
         )
-        session.invoice = filepath
-        session.closed = True
-        session.save()
+        invoice.invoice = filepath
+        invoice.save()
+        projects = models.Project.objects.all()
+        try:
+            for project in projects:
+                models.ProjectInvoice.objects.get(session=session, project=project)
+        except models.ProjectInvoice.DoesNotExist:
+            pass
+        else:
+            # session.closed = True
+            session.save()
         return FileResponse(open(filepath, "rb"), as_attachment=True, filename=filename)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def download_invoice(request, session_number, project_number):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        project = models.Project.objects.get(pk=project_number)
+        invoice = models.ProjectInvoice.objects.get(session=session, project=project)
+        return FileResponse(open(invoice.invoice.name, "rb"), as_attachment=True, filename=invoice.filename())
     else:
         return redirect("dashboard")
 

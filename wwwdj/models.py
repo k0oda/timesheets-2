@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
@@ -29,11 +31,23 @@ class Project(models.Model):
 class WorkSession(models.Model):
     starting_date = models.DateField(unique=True)
     finish_date = models.DateField(unique=True)
-    invoice = models.FileField(null=True)
     closed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.starting_date} - {self.finish_date}"
+
+
+class ProjectInvoice(models.Model):
+    session = models.ForeignKey(WorkSession, on_delete=models.CASCADE, related_name="project_invoices")
+    project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, related_name="invoices")
+    invoice = models.FileField()
+    date = models.DateField()
+
+    def __str__(self):
+        return f"{self.project.name} - {self.date}"
+
+    def filename(self):
+        return os.path.basename(self.invoice.name)
 
 
 class WorkDay(models.Model):

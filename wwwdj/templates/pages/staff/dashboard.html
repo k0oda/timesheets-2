@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load service_tags %}
+
 {% block title %}
 Staff Panel | Vidicode Timesheets
 {% endblock %}
@@ -16,7 +18,7 @@ Staff Panel | Vidicode Timesheets
         <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#chevron-left"></use></svg>
       </a>
       {% endif %}
-      {{ session.starting_date|date:"Y.m.d" }} - {{ session.finish_date|date:"Y.m.d" }}
+      {{ session.starting_date|date:"Y.m.d" }} - {{ session.finish_date|date:"Y.m.d" }} {% if session.closed %}<span class="badge bg-danger">Closed</span>{% else %}<span class="badge bg-success">Open</span>{% endif %}
       {% if next_session_number %}
       <a href="{% url 'staff_dashboard' next_session_number %}" class="btn btn-outline-secondary mb-1">
         <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#chevron-right"></use></svg>
@@ -25,7 +27,7 @@ Staff Panel | Vidicode Timesheets
     </h3>
   </div>
   <div class="col-auto">
-    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#signInvoiceModal">
+    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#signInvoiceModal" {% if session.closed %}disabled{% endif %}>
       <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#check-lg"></use></svg>
       Sign Invoice
     </button>
@@ -42,7 +44,10 @@ Staff Panel | Vidicode Timesheets
         <select class="form-select bg-dark text-light mb-3" id="project-select">
           <option value="default" selected>Select a Project</option>
           {% for project in projects %}
+          {% is_project_invoiced project session as invoiced %}
+          {% if not invoiced %}
           <option value="{{ project.pk }}">{{ project.name }}</option>
+          {% endif %}
           {% endfor %}
         </select>
         After your confirmation current work session

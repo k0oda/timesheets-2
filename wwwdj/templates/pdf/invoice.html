@@ -476,10 +476,10 @@
             <p class="c26 c20"><span class="c13"></span></p>
             <p class="c26 c20"><span class="c13"></span></p>
             <h6 class="c26" id="h.4ms4pjdvvcn5">
-              <span>Dec 7,</span><span class="c27 c32">&nbsp;2018<br /></span>
+              <span>{{ invoice.date|date:"M j" }},</span><span class="c27 c32">&nbsp;{{ invoice.date|date:"Y" }}<br /></span>
             </h6>
             <h6 class="c26" id="h.4ms4pjdvvcn5-1">
-              <span class="c32 c27">Invoice No. 0021</span>
+              <span class="c32 c27">Invoice No. {{ invoice.pk }}</span>
             </h6>
           </td>
           <td class="c31 c35" colspan="1" rowspan="1">
