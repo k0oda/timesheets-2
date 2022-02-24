@@ -108,39 +108,58 @@ def index(request):
 
 @login_required
 def start_work(request):
-    current_datetime = datetime.datetime.today()
-    session = models.WorkSession.objects.get(starting_date__lte=current_datetime.date(), finish_date__gte=current_datetime.date())
-    workday = models.WorkDay.objects.filter(date=current_datetime.date())
-    if workday:
-        workday = workday[0]
-    else:
-        workday = models.WorkDay.objects.create(
-            day_of_week=current_datetime.weekday(),
-            date=current_datetime.date(),
-            session=session,
+    if request.method == "POST":
+        current_datetime = datetime.datetime.today()
+        session = models.WorkSession.objects.get(starting_date__lte=current_datetime.date(), finish_date__gte=current_datetime.date())
+        workday = models.WorkDay.objects.filter(date=current_datetime.date())
+        if workday:
+            workday = workday[0]
+        else:
+            workday = models.WorkDay.objects.create(
+                day_of_week=current_datetime.weekday(),
+                date=current_datetime.date(),
+                session=session,
+            )
+            workday.save()
+        project = models.Project.objects.get(pk=request.POST.get("project"))
+        record = models.Record.objects.create(
+            worker=request.user,
+            project=project,
+            workday=workday,
+            start_time=current_datetime.time(),
         )
-        workday.save()
-    record = models.Record.objects.create(
-        worker=request.user,
-        workday=workday,
-        start_time=current_datetime.time(),
-    )
-    record.save()
+        record.save()
     return redirect("dashboard")
 
 
 @login_required
 def stop_work(request, record_id):
-    current_datetime = datetime.datetime.today()
-    record = models.Record.objects.get(
-        id=record_id,
-        worker=request.user,
-    )
-    record.finish_time = current_datetime.time()
-    record.total_hours = current_datetime.time().hour - record.start_time.hour
-    record.earnings = record.total_hours * (record.worker.hour_rate + record.project.hour_rate_increase)
-    record.stopped = True
-    record.save()
+    if request.method == "POST":
+        current_datetime = datetime.datetime.today()
+        record = models.Record.objects.get(
+            id=record_id,
+            worker=request.user,
+        )
+        record.finish_time = current_datetime.time()
+        record.total_hours = current_datetime.time().hour - record.start_time.hour
+        record.earnings = record.total_hours * (record.worker.hour_rate + record.project.hour_rate_increase)
+        summary = request.POST.get("summary")
+        record.summary = summary
+        record.stopped = True
+        record.save()
+    return redirect("dashboard")
+
+
+@login_required
+def edit_record(request, record_id):
+    if request.method == "POST":
+        record = models.Record.objects.get(
+            id=record_id,
+            worker=request.user,
+        )
+        record.project = models.Project.objects.get(pk=request.POST.get("project"))
+        record.summary = request.POST.get("summary")
+        record.save()
     return redirect("dashboard")
 
 
@@ -173,12 +192,14 @@ def dashboard(request):
                 finish_date=latest_session.finish_date + datetime.timedelta(days=14)
             )
         session.save()
+    projects = models.Project.objects.all()
     workdays, work_total_hours, work_total_earnings = get_work_timesheet(session, request.user)
     return render(
         request,
         "pages/dashboard.html",
         {
             "session": session,
+            "projects": projects,
             "workdays": workdays,
             "total_hours": work_total_hours,
             "total_earnings": work_total_earnings,
