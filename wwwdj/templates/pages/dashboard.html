@@ -26,9 +26,9 @@ Dashboard | Vidicode Timesheets
         <div class="modal-body">
           After your confirmation the timer will be started
           and new record will be created on current date
-          <label for="project-select" class="form-label">Select a Project you are working on:</label>
-          <select class="form-select bg-dark text-light mb-3" name="project" required>
-            <option value="" selected>Select a Project</option>
+          <label for="project-select" class="form-label mt-2">Select a Project you are working on:</label>
+          <select class="form-select bg-dark text-light mb-3" name="project" id="project-select" required>
+            <option value="" selected>----</option>
             {% for project in projects %}
             <option value="{{ project.pk }}">{{ project.name }}</option>
             {% endfor %}
@@ -122,6 +122,7 @@ Dashboard | Vidicode Timesheets
           </div>
         </div>
         {% endif %}
+        {% if workday.1.last.stopped %}
         <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#selectRecordEditModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
@@ -132,8 +133,7 @@ Dashboard | Vidicode Timesheets
                 <h5 class="modal-title" id="selectRecordEditModalLabel_{{ workday.0.pk }}">Select an record to edit</h5>
               </div>
               <div class="modal-body">
-                Select an record to edit
-                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                <select class="form-select bg-dark text-light" aria-label="Default select example">
                   {% for record in workday.1 %}
                   {% if forloop.first %}
                   <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
@@ -160,9 +160,9 @@ Dashboard | Vidicode Timesheets
                   <h5 class="modal-title" id="editRecordModalLabel_{{ record.pk }}">Edit record</h5>
                 </div>
                 <div class="modal-body">
-                  <label for="project-select" class="form-label">Select a Project for this Record:</label>
-                  <select class="form-select bg-dark text-light mb-3" name="project" required>
-                    <option value="" selected>Select a Project</option>
+                  <label for="record-project-select" class="form-label">Select a Project for this Record:</label>
+                  <select class="form-select bg-dark text-light mb-3" id="record-project-select" name="project" required>
+                    <option value="" selected>----</option>
                     {% for project in projects %}
                     <option value="{{ project.pk }}" {% if record.project.pk == project.pk %}selected{% endif %}>{{ project.name }}</option>
                     {% endfor %}
@@ -179,6 +179,7 @@ Dashboard | Vidicode Timesheets
           </div>
         </div>
         {% endfor %}
+        {% endif %}
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
@@ -186,10 +187,9 @@ Dashboard | Vidicode Timesheets
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
               <div class="modal-header">
-                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Select an record to remove</h5>
               </div>
               <div class="modal-body">
-                Select an record to remove
                 <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
                   {% for record in workday.1 %}
                   {% if forloop.first %}
@@ -224,7 +224,7 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 8%;">Finish Time</th>
       <th scope="col" style="width: 9%;">Total Hours</th>
       <th scope="col" style="width: 7%;">Earnings</th>
-      <th scope="col" style="width: 40%;">Work Summary</th>
+      <th scope="col" style="width: 35%;">Work Summary</th>
       <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
   </thead>
@@ -238,30 +238,31 @@ Dashboard | Vidicode Timesheets
       <td>
         {% for record in workday.1 %}
         {{ record.project }}
-        <br>
+        <hr class="my-1">
         {% endfor %}
       </td>
       <td>
         {% for record in workday.1 %}
         {{ record.start_time|date:"G:i" }}
-        <br>
+        <hr class="my-1">
         {% endfor %}
       </td>
       <td>
         {% for record in workday.1 %}
         {% if record.finish_time %}
         {{ record.finish_time|date:"G:i" }}
+        <hr class="my-1">
         {% endif %}
         {% endfor %}
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
       <td>
-        {% for record in workday.4 %}
+        {% for record in workday.1 %}
         {% if record.summary %}
         {{ record.summary }}
+        <hr class="my-1">
         {% endif %}
-        <br>
         {% endfor %}
       </td>
       <td class="align-middle text-center">
@@ -273,33 +274,37 @@ Dashboard | Vidicode Timesheets
         <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
-              <div class="modal-header">
-                <h5 class="modal-title" id="stopWorkModalLabel">Confirm work stop?</h5>
-              </div>
-              <div class="modal-body">
-                After your confirmation the timer will be stopped
-                and time of finish will be recorded, total hours and earnings also will be counted and recorded
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="{% url 'stop_work' workday.1.last.id %}">Confirm</a>
-              </div>
+              <form action="{% url 'stop_work' workday.1.last.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title" id="stopWorkModalLabel">Enter work summary</h5>
+                </div>
+                <div class="modal-body">
+                  After your confirmation the timer will be stopped
+                  and time of finish will be recorded, total hours and earnings also will be counted and recorded
+                  <textarea name="summary" class="form-control bg-dark text-white mt-2" cols="30" rows="10" placeholder="Feature: Summary" required></textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
         {% endif %}
-        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}">
+        {% if workday.1.last.stopped %}
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#selectRecordEditModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
         </button>
-        <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+        <div class="modal fade" id="selectRecordEditModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="selectRecordEditModalLabel_{{ workday.0.pk }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
               <div class="modal-header">
-                <h5 class="modal-title" id="editWorkModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+                <h5 class="modal-title" id="selectRecordEditModalLabel_{{ workday.0.pk }}">Select an record to edit</h5>
               </div>
               <div class="modal-body">
-                Select an record to edit
-                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                <select class="form-select bg-dark text-light" aria-label="Default select example">
                   {% for record in workday.1 %}
                   {% if forloop.first %}
                   <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
@@ -311,11 +316,41 @@ Dashboard | Vidicode Timesheets
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="#">Confirm</a>
+                <button type="button" class="btn btn-success confirmRecordSelect">Confirm</button>
               </div>
             </div>
           </div>
         </div>
+        {% for record in workday.1 %}
+        <div class="modal fade" id="editRecordModal_{{ record.pk }}" tabindex="-1" aria-labelledby="editRecordModalLabel_{{ record.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <form action="{% url 'edit_record' record.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editRecordModalLabel_{{ record.pk }}">Edit record</h5>
+                </div>
+                <div class="modal-body">
+                  <label for="record-project-select" class="form-label">Select a Project for this Record:</label>
+                  <select class="form-select bg-dark text-light mb-3" id="record-project-select" name="project" required>
+                    <option value="" selected>----</option>
+                    {% for project in projects %}
+                    <option value="{{ project.pk }}" {% if record.project.pk == project.pk %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <label for="summary" class="form-label">Work summary:</label>
+                  <textarea name="summary" id="summary" class="form-control bg-dark text-white" cols="30" rows="10" placeholder="Feature: Summary" required>{{ record.summary }}</textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
@@ -323,10 +358,9 @@ Dashboard | Vidicode Timesheets
           <div class="modal-dialog modal-dialog-centered text-start">
             <div class="modal-content bg-dark">
               <div class="modal-header">
-                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
+                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Select an record to remove</h5>
               </div>
               <div class="modal-body">
-                Select an record to remove
                 <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
                   {% for record in workday.1 %}
                   {% if forloop.first %}

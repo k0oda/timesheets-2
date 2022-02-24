@@ -67,7 +67,7 @@ class Record(models.Model):
     finish_time = models.TimeField(blank=True, null=True)
     total_hours = models.SmallIntegerField(blank=True, null=True)
     earnings = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
-    summary = models.TextField()
+    summary = models.TextField(blank=True, null=True)
     stopped = models.BooleanField(default=False)
 
     def __str__(self):
