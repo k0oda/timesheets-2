@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from wwwdj import models
 
@@ -109,7 +110,7 @@ def index(request):
 @login_required
 def start_work(request):
     if request.method == "POST":
-        current_datetime = datetime.datetime.today()
+        current_datetime = timezone.now()
         session = models.WorkSession.objects.get(starting_date__lte=current_datetime.date(), finish_date__gte=current_datetime.date())
         workday = models.WorkDay.objects.filter(date=current_datetime.date())
         if workday:
@@ -126,7 +127,7 @@ def start_work(request):
             worker=request.user,
             project=project,
             workday=workday,
-            start_time=current_datetime.time(),
+            start_time=current_datetime,
         )
         record.save()
     return redirect("dashboard")
@@ -135,13 +136,13 @@ def start_work(request):
 @login_required
 def stop_work(request, record_id):
     if request.method == "POST":
-        current_datetime = datetime.datetime.today()
+        current_datetime = timezone.now()
         record = models.Record.objects.get(
             id=record_id,
             worker=request.user,
         )
-        record.finish_time = current_datetime.time()
-        record.total_hours = current_datetime.time().hour - record.start_time.hour
+        record.finish_time = current_datetime
+        record.total_hours = int((current_datetime - record.start_time).total_seconds() // 3600)
         record.earnings = record.total_hours * (record.worker.hour_rate + record.project.hour_rate_increase)
         summary = request.POST.get("summary")
         record.summary = summary
@@ -175,7 +176,7 @@ def delete_work(request, record_id):
 
 @login_required
 def dashboard(request):
-    current_date = datetime.date.today()
+    current_date = timezone.now()
     try:
         session = models.WorkSession.objects.get(starting_date__lte=current_date, finish_date__gte=current_date)
     except models.WorkSession.DoesNotExist:
