@@ -65,7 +65,7 @@ class Record(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     finish_time = models.DateTimeField(blank=True, null=True)
-    total_hours = models.SmallIntegerField(blank=True, null=True)
+    total_hours = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
     earnings = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
     summary = models.TextField(blank=True, null=True)
     stopped = models.BooleanField(default=False)

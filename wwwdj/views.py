@@ -142,8 +142,15 @@ def stop_work(request, record_id):
             worker=request.user,
         )
         record.finish_time = current_datetime
-        record.total_hours = int((current_datetime - record.start_time).total_seconds() // 3600)
-        record.earnings = record.total_hours * (record.worker.hour_rate + record.project.hour_rate_increase)
+        total_seconds = (current_datetime - record.start_time).total_seconds()
+        total_minutes = (total_seconds // 60) % 60
+        total_hours = total_seconds // 3600
+        if total_minutes > 45:
+            total_hours += 1
+        elif total_minutes > 8 and total_minutes <= 45:
+            total_hours += 0.5
+        record.total_hours = total_hours
+        record.earnings = record.total_hours * float(record.worker.hour_rate + record.project.hour_rate_increase)
         summary = request.POST.get("summary")
         record.summary = summary
         record.stopped = True
