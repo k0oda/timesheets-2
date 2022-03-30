@@ -485,7 +485,7 @@ def sign_invoice(request, session_number, project_number):
         except models.ProjectInvoice.DoesNotExist:
             pass
         else:
-            # session.closed = True
+            session.closed = True
             session.save()
         return FileResponse(open(filepath, "rb"), as_attachment=True, filename=filename)
     else:
@@ -505,6 +505,28 @@ def download_invoice(request, session_number, project_number):
 
 # Auth
 #
+
+def user_settings(request):
+    user = request.user
+    if request.method == "POST":
+        user.username=request.POST.get('username')
+        user.email=request.POST.get('email')
+        user.first_name=request.POST.get('first_name')
+        user.last_name=request.POST.get('last_name')
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        if user.check_password(old_password) and new_password:
+            user.set_password(new_password)
+        user.save()
+        return redirect("dashboard")
+    return render(
+        request,
+        "pages/user_settings.html",
+        {
+            "user": request.user,
+        }
+    )
+
 
 def sign_in(request):
     if request.user.is_authenticated:

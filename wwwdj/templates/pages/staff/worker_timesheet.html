@@ -99,12 +99,13 @@
       <td>
         {% for record in workday.1 %}
         {{ record.project }}
-        <br>
+        <hr class="my-1">
         {% endfor %}
       </td>
       <td>
         {% for record in workday.1 %}
         {{ record.start_time|date:"G:i" }}
+        <hr class="my-1">
         <br>
         {% endfor %}
       </td>
@@ -112,51 +113,22 @@
         {% for record in workday.1 %}
         {% if record.finish_time %}
         {{ record.finish_time|date:"G:i" }}
+        <hr class="my-1">
         {% endif %}
-        <br>
         {% endfor %}
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
       <td>
-        {% for record in workday.4 %}
+        {% for record in workday.1 %}
         {% if record.summary %}
         {{ record.summary }}
+        <hr class="my-1">
         {% endif %}
         {% endfor %}
       </td>
       <td class="align-middle text-center">
         {% if workday.1 %}
-        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        {% if not session.closed %}
-        <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered text-start">
-            <div class="modal-content bg-dark">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editWorkModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
-              </div>
-              <div class="modal-body">
-                Select an record to edit
-                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
-                  {% for record in workday.1 %}
-                  {% if forloop.first %}
-                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
-                  {% else %}
-                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
-                  {% endif %}
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="#">Confirm</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
@@ -218,64 +190,35 @@
       <td>
         {% for record in workday.1 %}
         {{ record.project }}
-        <br>
+        <hr class="my-1">
         {% endfor %}
       </td>
       <td>
         {% for record in workday.1 %}
         {{ record.start_time|date:"G:i" }}
-        <br>
+        <hr class="my-1">
         {% endfor %}
       </td>
       <td>
         {% for record in workday.1 %}
         {% if record.finish_time %}
         {{ record.finish_time|date:"G:i" }}
+        <hr class="my-1">
         {% endif %}
         {% endfor %}
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
       <td>
-        {% for record in workday.4 %}
+        {% for record in workday.1 %}
         {% if record.summary %}
         {{ record.summary }}
+        <hr class="my-1">
         {% endif %}
-        <br>
         {% endfor %}
       </td>
       <td class="align-middle text-center">
         {% if workday.1 %}
-        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editWorkModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
-        </button>
-        {% if not session.closed %}
-        <div class="modal fade" id="editWorkModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="editWorkModalLabel_{{ workday.0.pk }}" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered text-start">
-            <div class="modal-content bg-dark">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editWorkModalLabel_{{ workday.0.pk }}">Confirm work stop?</h5>
-              </div>
-              <div class="modal-body">
-                Select an record to edit
-                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
-                  {% for record in workday.1 %}
-                  {% if forloop.first %}
-                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
-                  {% else %}
-                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
-                  {% endif %}
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <a class="btn btn-success" href="#">Confirm</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}" {% if session.closed %}disabled{% endif %}>
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
         </button>
