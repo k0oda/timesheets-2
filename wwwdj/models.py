@@ -56,7 +56,7 @@ class WorkDay(models.Model):
     session = models.ForeignKey(WorkSession, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.get_day_of_week_display()} | {self.date}"
+        return str(self.get_day_of_week_display())
 
 
 class Record(models.Model):
