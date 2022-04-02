@@ -31,7 +31,7 @@ class RecordAdmin(admin.ModelAdmin):
     form = RecordAdminForm
     list_display = ("worker", "get_workday", "project", "total_hours", "payable_earnings", "billable_earnings")
 
-    @admin.display(ordering="-date")
+    @admin.display(ordering="-date", description="Workday")
     def get_workday(self, obj):
         return f"{obj.workday.get_day_of_week_display()} {obj.workday.date}"
 

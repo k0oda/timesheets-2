@@ -158,8 +158,8 @@ def stop_work(request, record_id):
         elif total_minutes > 8 and total_minutes <= 45:
             total_hours += 0.5
         record.total_hours = total_hours
-        record.payable_earnings = record.total_hours * float(record.worker.payable_hour_rate + record.project.hour_rate_increase)
-        record.billable_earnings = record.total_hours * float(record.worker.billable_hour_rate)
+        record.payable_earnings = record.total_hours * float(record.worker.payable_hour_rate + record.project.payable_hour_rate_increase)
+        record.billable_earnings = record.total_hours * float(record.worker.billable_hour_rate + record.project.billable_hour_rate_increase)
         summary = request.POST.get("summary")
         record.summary = summary
         record.stopped = True
