@@ -328,7 +328,8 @@ def add_project(request, session_number=None):
             project = models.Project.objects.create(
                 name = request.POST.get("name"),
                 description = request.POST.get("description"),
-                hour_rate_increase = request.POST.get("hour_rate_increase"),
+                payable_hour_rate_increase = request.POST.get("payable_hour_rate_increase"),
+                billable_hour_rate_increase = request.POST.get("billable_hour_rate_increase"),
             )
             project.save()
         return redirect("projects", session_number=session.pk)
@@ -344,7 +345,8 @@ def edit_project(request, project_number, session_number=None):
             project = models.Project.objects.get(pk=project_number)
             project.name = request.POST.get("name")
             project.description = request.POST.get("description")
-            project.hour_rate_increase = request.POST.get("hour_rate_increase")
+            project.payable_hour_rate_increase = request.POST.get("payable_hour_rate_increase")
+            project.billable_hour_rate_increase = request.POST.get("billable_hour_rate_increase")
             project.save()
         return redirect("projects", session_number=session.pk)
     else:

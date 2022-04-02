@@ -25,8 +25,12 @@
             <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required></textarea>
           </div>
           <div class="mb-1">
-            <label for="hour-rate-increase" class="col-form-label">Hour Rate Increase:</label>
-            <input type="number" name="hour_rate_increase" id="hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="payable_hour-rate-increase" class="col-form-label">Payable Hour Rate Increase:</label>
+            <input type="number" name="payable_hour_rate_increase" id="payable_hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="billable_hour-rate-increase" class="col-form-label">Billable Hour Rate Increase:</label>
+            <input type="number" name="billable_hour_rate_increase" id="billable_hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -43,7 +47,8 @@
     <div class="card bg-dark">
       <div class="card-body">
         <h3 class="card-title">{{ project }}</h3>
-        <h6 class="card-subtitle mb-2">${{ project.hour_rate_increase }} hour rate increase</h6>
+        <h6 class="card-subtitle mb-1">${{ project.payable_hour_rate_increase }} payable hour rate increase</h6>
+        <h6 class="card-subtitle mb-2">${{ project.billable_hour_rate_increase }} billable hour rate increase</h6>
         <hr>
         <p class="card-text">{{ project.description }}</p>
         <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ project.pk }}">Edit</button>
@@ -73,8 +78,12 @@
             <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required>{{ project.description }}</textarea>
           </div>
           <div class="mb-1">
-            <label for="hour-rate-increase" class="col-form-label">Hour Rate Increase:</label>
-            <input type="number" name="hour_rate_increase" id="hour-rate-increase" min="0" value="{{ project.hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="payable_hour-rate-increase" class="col-form-label">Payable Hour Rate Increase:</label>
+            <input type="number" name="payable_hour_rate_increase" id="payable_hour-rate-increase" min="0" value="{{ project.payable_hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="billable_hour-rate-increase" class="col-form-label">Billable Hour Rate Increase:</label>
+            <input type="number" name="billable_hour_rate_increase" id="billable_hour-rate-increase" min="0" value="{{ project.billable_hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
