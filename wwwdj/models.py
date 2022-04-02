@@ -10,8 +10,8 @@ from wwwdj import model_choices as choices
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    payable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    billable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    payable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    billable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "password"]
@@ -67,8 +67,8 @@ class Record(models.Model):
     start_time = models.DateTimeField()
     finish_time = models.DateTimeField(blank=True, null=True)
     total_hours = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
-    payable_earnings = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
-    billable_earnings = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
+    payable_earnings = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+    billable_earnings = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     summary = models.TextField(blank=True, null=True)
     stopped = models.BooleanField(default=False)
 
