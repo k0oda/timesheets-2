@@ -52,8 +52,9 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 8%;">Start Time</th>
       <th scope="col" style="width: 8%;">Finish Time</th>
       <th scope="col" style="width: 9%;">Total Hours</th>
-      <th scope="col" style="width: 7%;">Earnings</th>
-      <th scope="col" style="width: 35%;">Work Summary</th>
+      <th scope="col" style="width: 3,5%;">Payable</th>
+      <th scope="col" style="width: 3,5%;">Billable</th>
+      <th scope="col" style="width: 30%;">Work Summary</th>
       <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
   </thead>
@@ -87,6 +88,7 @@ Dashboard | Vidicode Timesheets
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
+      <td>${{ workday.4 }}</td>
       <td>
         {% for record in workday.1 %}
         {% if record.summary %}
@@ -224,8 +226,9 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 8%;">Start Time</th>
       <th scope="col" style="width: 8%;">Finish Time</th>
       <th scope="col" style="width: 9%;">Total Hours</th>
-      <th scope="col" style="width: 7%;">Earnings</th>
-      <th scope="col" style="width: 35%;">Work Summary</th>
+      <th scope="col" style="width: 3,5%;">Payable</th>
+      <th scope="col" style="width: 3,5%;">Billable</th>
+      <th scope="col" style="width: 30%;">Work Summary</th>
       <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
   </thead>
@@ -259,6 +262,7 @@ Dashboard | Vidicode Timesheets
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
+      <td>${{ workday.4 }}</td>
       <td>
         {% for record in workday.1 %}
         {% if record.summary %}
@@ -396,7 +400,8 @@ Dashboard | Vidicode Timesheets
     <h5>{{ total_hours }} hours</h5>
   </div>
   <div class="col-auto">
-    <h5>${{ total_earnings }}</h5>
+    <h5>Payable: ${{ total_payable_earnings }}</h5>
+    <h5>Billable: ${{ total_billable_earnings }}</h5>
   </div>
 </div>
 {% endblock content %}

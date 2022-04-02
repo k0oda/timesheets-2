@@ -1,7 +1,20 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django import forms
 
 from wwwdj import models
+
+
+class CustomWorkDayChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.get_day_of_week_display()} {obj.date}"
+
+
+class RecordAdminForm(forms.ModelForm):
+    workday = CustomWorkDayChoiceField(queryset=models.WorkDay.objects.all())
+    class Meta:
+        model = models.Record
+        fields = "__all__"
 
 
 class WorkSessionAdmin(admin.ModelAdmin):
@@ -15,8 +28,9 @@ class WorkDayAdmin(admin.ModelAdmin):
 
 
 class RecordAdmin(admin.ModelAdmin):
+    form = RecordAdminForm
     def get_list_display(self, request):
-        return ("worker", "workday", "project", "total_hours", "earnings")
+        return ("worker", "workday", "project", "total_hours", "payable_earnings", "billable_earnings")
 
 admin.site.register(get_user_model())
 admin.site.register(models.Project)

@@ -48,13 +48,15 @@ def get_project_work(session_number, project_number):
     work_records = {
         "meta": {
             "total_hours": 0,
-            "total_earnings": 0,
+            "total_payable_earnings": 0,
+            "total_billable_earnings": 0,
         },
         "records": [],
     }
     for worker in workers:
         work_total_hours = 0
-        work_total_earnings = 0
+        work_total_payable_earnings = 0
+        work_total_billable_earnings = 0
         work_total_days = 0
         for workday in session.workday_set.all().order_by("day_of_week"):
             records = models.Record.objects.filter(
@@ -67,14 +69,16 @@ def get_project_work(session_number, project_number):
                 if record.total_hours:
                     workday_worked = True
                     work_total_hours += record.total_hours
-                    work_total_earnings += record.earnings
+                    work_total_payable_earnings += record.payable_earnings
+                    work_total_billable_earnings += record.billable_earnings
             if workday_worked:
                 work_total_days += 1
         if work_total_days == 0:
             continue
-        work_record = [worker, work_total_hours, work_total_earnings, work_total_days]
+        work_record = [worker, work_total_hours, work_total_payable_earnings, work_total_billable_earnings, work_total_days]
         work_records["meta"]["total_hours"] += work_total_hours
-        work_records["meta"]["total_earnings"] += work_total_earnings
+        work_records["meta"]["total_payable_earnings"] += work_total_payable_earnings
+        work_records["meta"]["total_billable_earnings"] += work_total_billable_earnings
         work_records["records"].append(work_record)
     return work_records
 
@@ -82,22 +86,26 @@ def get_project_work(session_number, project_number):
 def get_work_timesheet(session, worker):
     workdays = [[], []]
     work_total_hours = 0
-    work_total_earnings = 0
+    work_total_payable_earnings = 0
+    work_total_billable_earnings = 0
     for workday in session.workday_set.all().order_by("day_of_week"):
         records = models.Record.objects.filter(
             worker=worker,
             workday=workday,
         )
         hours = 0
-        earnings = 0
+        payable_earnings = 0
+        billable_earnings = 0
         for record in records:
             if record.total_hours:
                 hours += record.total_hours
-                earnings += record.earnings
-        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, hours, earnings])
+                payable_earnings += record.payable_earnings
+                billable_earnings += record.billable_earnings
+        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, hours, payable_earnings, billable_earnings])
         work_total_hours += hours
-        work_total_earnings += earnings
-    return (workdays, work_total_hours, work_total_earnings)
+        work_total_payable_earnings += payable_earnings
+        work_total_billable_earnings  += billable_earnings
+    return (workdays, work_total_hours, work_total_payable_earnings, work_total_billable_earnings)
 
 
 # Worker-faced Views
@@ -150,7 +158,8 @@ def stop_work(request, record_id):
         elif total_minutes > 8 and total_minutes <= 45:
             total_hours += 0.5
         record.total_hours = total_hours
-        record.earnings = record.total_hours * float(record.worker.hour_rate + record.project.hour_rate_increase)
+        record.payable_earnings = record.total_hours * float(record.worker.payable_hour_rate + record.project.hour_rate_increase)
+        record.billable_earnings = record.total_hours * float(record.worker.billable_hour_rate)
         summary = request.POST.get("summary")
         record.summary = summary
         record.stopped = True
@@ -201,7 +210,7 @@ def dashboard(request):
             )
         session.save()
     projects = models.Project.objects.all()
-    workdays, work_total_hours, work_total_earnings = get_work_timesheet(session, request.user)
+    workdays, work_total_hours, work_total_payable_earnings, work_total_billable_earnings = get_work_timesheet(session, request.user)
     return render(
         request,
         "pages/dashboard.html",
@@ -210,7 +219,8 @@ def dashboard(request):
             "projects": projects,
             "workdays": workdays,
             "total_hours": work_total_hours,
-            "total_earnings": work_total_earnings,
+            "total_payable_earnings": work_total_payable_earnings,
+            "total_billable_earnings": work_total_billable_earnings,
         }
     )
 
@@ -250,13 +260,15 @@ def totals(request, session_number=None):
         projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         session_total_hours = 0
-        session_total_earnings = 0
+        session_total_payable_earnings = 0
+        session_total_billable_earnings = 0
         work_records = {}
         for project in projects:
             project_work = get_project_work(session.pk, project.pk)
             work_records[project] = project_work
             session_total_hours += project_work["meta"]["total_hours"]
-            session_total_earnings += project_work["meta"]["total_earnings"]
+            session_total_payable_earnings += project_work["meta"]["total_payable_earnings"]
+            session_total_billable_earnings += project_work["meta"]["total_billable_earnings"]
         return render(
             request,
             "pages/staff/totals.html",
@@ -268,7 +280,8 @@ def totals(request, session_number=None):
                 "workers": workers,
                 "work_records": work_records,
                 "session_total_hours": session_total_hours,
-                "session_total_earnings": session_total_earnings,
+                "session_total_payable_earnings": session_total_payable_earnings,
+                "session_total_billable_earnings": session_total_billable_earnings,
             }
         )
     else:
@@ -363,7 +376,7 @@ def worker_timesheet(request, worker_number, session_number=None):
         projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         current_worker = get_user_model().objects.get(pk=worker_number)
-        workdays, work_total_hours, work_total_earnings = get_work_timesheet(session, current_worker)
+        workdays, work_total_hours, work_total_payable_earnings, work_total_billable_earnings = get_work_timesheet(session, current_worker)
         return render(
             request,
             "pages/staff/worker_timesheet.html",
@@ -376,7 +389,8 @@ def worker_timesheet(request, worker_number, session_number=None):
                 "current_worker": current_worker,
                 "workdays": workdays,
                 "total_hours": work_total_hours,
-                "total_earnings": work_total_earnings,
+                "total_payable_earnings": work_total_payable_earnings,
+                "total_billable_earnings": work_total_billable_earnings,
             }
         )
     else:
@@ -396,7 +410,8 @@ def add_worker(request, session_number=None):
                 email=request.POST.get('email'),
                 first_name=request.POST.get('first_name'),
                 last_name=request.POST.get('last_name'),
-                hour_rate=request.POST.get('hour_rate'),
+                payable_hour_rate=request.POST.get('payable_hour_rate'),
+                billable_hour_rate=request.POST.get('billable_hour_rate'),
                 password=request.POST.get('password'),
                 is_staff=is_staff,
             )
@@ -419,7 +434,8 @@ def edit_worker(request, worker_number, session_number=None):
             worker.email=request.POST.get('email')
             worker.first_name=request.POST.get('first_name')
             worker.last_name=request.POST.get('last_name')
-            worker.hour_rate=request.POST.get('hour_rate')
+            worker.payable_hour_rate=request.POST.get('payable_hour_rate')
+            worker.billable_hour_rate=request.POST.get('billable_hour_rate')
             worker.is_staff=is_staff
             worker.save()
         return redirect("worker_timesheet", session.pk, worker_number)

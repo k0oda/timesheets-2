@@ -11,7 +11,8 @@
     <tr>
       <th scope="col" style="width: 25%;">Worker</th>
       <th scope="col" style="width: 15%;">Total Hours</th>
-      <th scope="col" style="width: 15%;">Total Earnings</th>
+      <th scope="col" style="width: 15%;">Total Payable</th>
+      <th scope="col" style="width: 15%;">Total Billable</th>
       <th scope="col" style="width: 15%;">Days Worked</th>
     </tr>
   </thead>
@@ -28,7 +29,10 @@
         ${{ record.2 }}
       </td>
       <td>
-        {{ record.3 }}
+        ${{ record.3 }}
+      </td>
+      <td>
+        {{ record.4 }}
       </td>
     </tr>
     {% endfor %}
@@ -57,7 +61,8 @@
     <h4>{{ session_total_hours }} hours</h4>
   </div>
   <div class="col-auto">
-    <h4>${{ session_total_earnings }}</h4>
+    <h4>Payable: ${{ session_total_payable_earnings }}</h4>
+    <h4>Billable: ${{ session_total_billable_earnings }}</h4>
   </div>
 </div>
 {% endblock %}
