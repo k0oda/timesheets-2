@@ -158,10 +158,10 @@ Staff Panel | Vidicode Timesheets
       window.location.href = '/delete_work/' + selectedId + '/';
     });
     $('#confirm-sign').click(function() {
-      var urlMask = '{% url "sign_invoice" session_number=session.pk project_number=0 %}';
+      var urlMask = '{% url "sign_invoice" session_number=session.pk project_number=123456789101112 %}';
       selectValue = $('#project-select').children('option:selected').val();
       if(selectValue !== "default") {
-        urlMask = urlMask.replace('0', selectValue);
+        urlMask = urlMask.replace('123456789101112', selectValue);
         window.location.href = urlMask;
         setTimeout(function() {
           window.location.href = '{% url "staff_dashboard" session.pk %}';

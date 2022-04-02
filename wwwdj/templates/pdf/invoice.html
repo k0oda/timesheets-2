@@ -536,7 +536,7 @@
             <p class="c14"><span class="c1">{{ record.1 }}</span></p>
           </td>
           <td class="c0" colspan="1" rowspan="1">
-            <p class="c14"><span class="c1">${{ record.2 }}</span></p>
+            <p class="c14"><span class="c1">${{ record.3 }}</span></p>
           </td>
         </tr>
         {% endfor %}
@@ -561,7 +561,7 @@
           </td>
           <td class="c0" colspan="1" rowspan="1">
             <p class="c14">
-              <span class="c16">${{ work_records.meta.total_earnings }}</span>
+              <span class="c16">${{ work_records.meta.total_billable_earnings }}</span>
             </p>
           </td>
         </tr>
@@ -622,7 +622,7 @@
             >
               <span class="c8">
                 {% for record in work_records.records %}
-                {{ record.1 }} hours at ${{ record.0.hour_rate|add:project.hour_rate_increase }} per hour {% if not forloop.last %} + {% endif %} = ${{ work_records.meta.total_earnings }}
+                {{ record.1 }} hours at ${{ record.0.billable_hour_rate|add:project.billable_hour_rate_increase }} per hour {% if not forloop.last %} + {% endif %} = ${{ work_records.meta.total_billable_earnings }}
                 {% endfor %}
               </span>
             </p>
