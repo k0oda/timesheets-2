@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.conf import settings
 
 from wwwdj import models
 
@@ -476,7 +477,7 @@ def sign_invoice(request, session_number, project_number):
             },
         )
         filename = f"Invoice_{invoice.pk}.pdf"
-        filepath = f"media/{filename}"
+        filepath = f"{settings.MEDIA_ROOT}/{filename}"
         htmldoc = HTML(string=page)
         htmldoc.write_pdf(
             target=filepath,
