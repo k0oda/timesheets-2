@@ -102,7 +102,7 @@ def get_work_timesheet(session, worker):
                 hours += record.total_hours
                 payable_earnings += record.payable_earnings
                 billable_earnings += record.billable_earnings
-        workdays[session.starting_date.day + 7 <= workday.date.day if 1 else 0].append([workday, records, hours, payable_earnings, billable_earnings])
+        workdays[session.starting_date + datetime.timedelta(days=7) <= workday.date if 1 else 0].append([workday, records, hours, payable_earnings, billable_earnings])
         work_total_hours += hours
         work_total_payable_earnings += payable_earnings
         work_total_billable_earnings  += billable_earnings
