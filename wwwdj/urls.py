@@ -21,7 +21,10 @@ from wwwdj import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index, name="index"),
-    
+
+    # AJAX
+    path("get_worker/", views.get_worker, name="get_worker"),
+
     # Auth
     path("user_settings/", views.user_settings, name="user_settings"),
     path("sign_in/", views.sign_in, name="sign_in"),
@@ -52,6 +55,8 @@ urlpatterns = [
     path("dashboard/staff/projects/<int:session_number>/delete/<int:project_number>/", views.delete_project, name="delete_project"),
     path("dashboard/staff/projects/<int:project_number>/rates/add/", views.add_personal_rate, name="add_personal_rate"),
     path("dashboard/staff/projects/<int:session_number>/<int:project_number>/rates/add/", views.add_personal_rate, name="add_personal_rate"),
+    path("dashboard/staff/projects/recalculate/<int:project_number>/", views.recalculate_records, name="recalculate_records"),
+    path("dashboard/staff/projects/<int:session_number>/recalculate/<int:project_number>/", views.recalculate_records, name="recalculate_records"),
     path("dashboard/staff/projects/<int:project_number>/rates/edit/<int:rate_number>/", views.edit_personal_rate, name="edit_personal_rate"),
     path("dashboard/staff/projects/<int:session_number>/<int:project_number>/rates/edit/<int:rate_number>/", views.edit_personal_rate, name="edit_personal_rate"),
     path("dashboard/staff/projects/<int:project_number>/rates/delete/<int:rate_number>/", views.delete_personal_rate, name="delete_personal_rate"),

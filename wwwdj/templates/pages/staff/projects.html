@@ -46,12 +46,19 @@
         <h6 class="card-subtitle mb-2">${{ project.billable_rate }} billable rate</h6>
         <hr>
         <p class="card-text">{{ project.description }}</p>
-        <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ project.pk }}">Edit</button>
-        <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editPersonalRatesModal_{{ project.pk }}">Manage Personal Rates</button>
-        <button class="btn btn-outline-danger mt-2 float-end" data-bs-toggle="modal" data-bs-target="#deleteProjectModal_{{ project.pk }}">
-          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
-          Delete
-        </button>
+        <div class="row justify-content-between">
+          <div class="col-auto">
+            <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ project.pk }}">Edit</button>
+            <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editPersonalRatesModal_{{ project.pk }}">Manage Personal Rates</button>
+            <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#recalculateRecordsModal_{{ project.pk }}">Recalculate records</button>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-outline-danger mt-2" data-bs-toggle="modal" data-bs-target="#deleteProjectModal_{{ project.pk }}">
+              <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
+              Delete
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -66,21 +73,21 @@
         </div>
         <div class="modal-body">
           <div class="mb-1">
-            <label for="name" class="col-form-label">Project Name:</label>
-            <input type="text" name="name" id="name" value="{{ project.name }}" class="form-control bg-dark text-white" required>
+            <label for="name_{{ project.pk }}" class="col-form-label">Project Name:</label>
+            <input type="text" name="name" id="name_{{ project.pk }}" value="{{ project.name }}" class="form-control bg-dark text-white" required>
           </div>
           <div class="mb-1">
-            <label for="description" class="col-form-label">Description:</label>
-            <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required>{{ project.description }}</textarea>
+            <label for="description_{{ project.pk }}" class="col-form-label">Description:</label>
+            <textarea name="description" class="form-control bg-dark text-white" id="description_{{ project.pk }}" cols="30" rows="10" required>{{ project.description }}</textarea>
           </div>
           <div class="mb-1">
-            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
-            <input type="number" name="billable_rate" id="billable_rate" min="0" value="{{ project.billable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="billable_rate_{{ project.pk }}" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate_{{ project.pk }}" min="0" value="{{ project.billable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-success">Confirm</btn>
+          <button type="submit" class="btn btn-success">Confirm</button>
         </div>
       </form>
     </div>
@@ -120,6 +127,23 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="recalculateRecordsModal_{{ project.pk }}" tabindex="-1" aria-labelledby="recalculateRecordsModalLabel_{{ project.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="recalculateRecordsModalLabel_{{ rate.pk }}">Confirm records recalculation?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation all records for {{ project.name }} in
+        all opened work sessions will be recalculated using new settings
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-target="#editPersonalRatesModal_{{ project.pk }}" data-bs-toggle="modal">Close</button>
+        <a href="{% url 'recalculate_records' session.pk project.pk %}" class="btn btn-success">Confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal fade" id="addRateModal_{{ project.pk }}" tabindex="-1" aria-labelledby="addRateModalLabel_{{ project.pk }}" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark">
@@ -130,8 +154,8 @@
         </div>
         <div class="modal-body">
           <div class="mb-1">
-            <label for="worker-select" class="col-form-label">Worker:</label>
-            <select class="form-select bg-dark text-light" name="worker" id="worker-select" required>
+            <label for="worker-select_{{ project.pk }}" class="col-form-label">Worker:</label>
+            <select class="form-select bg-dark text-light worker-rate-select" name="worker" id="worker-select_{{ project.pk }}" required>
               <option value="" selected>----</option>
               {% for worker in new_personal_rate_workers %}
               <option value="{{ worker.pk }}">{{ worker }}</option>
@@ -139,12 +163,12 @@
             </select>
           </div>
           <div class="mb-1">
-            <label for="payable_rate" class="col-form-label">Payable Rate:</label>
-            <input type="number" name="payable_rate" id="payable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="worker_payable_rate_{{ project.pk }}" class="col-form-label">Payable Rate:</label>
+            <input type="number" name="payable_rate" id="worker_payable_rate_{{ project.pk }}" min="0" value="0" step="0.5" class="form-control bg-dark text-white payable-rate" required disabled>
           </div>
           <div class="mb-1">
-            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
-            <input type="number" name="billable_rate" id="billable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="worker_billable_rate_{{ project.pk }}" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="worker_billable_rate_{{ project.pk }}" min="0" value="0" step="0.5" class="form-control bg-dark text-white billable-rate" required disabled>
           </div>
         </div>
         <div class="modal-footer">
@@ -162,16 +186,16 @@
       <form action="{% url 'edit_personal_rate' session.pk project.pk rate.pk %}" method="POST">
         {% csrf_token %}
         <div class="modal-header">
-          <h5 class="modal-title" id="editRateModalLabel_{{ rate.pk }}">Edit personal rate for {{ rate.worker }}</h5>
+          <h5 class="modal-title" id="editRateModalLabel_{{ rate.pk }}">Edit personal rate for {{ rate.worker }} on {{ project.name }}</h5>
         </div>
         <div class="modal-body">
           <div class="mb-1">
-            <label for="payable_rate" class="col-form-label">Payable Rate:</label>
-            <input type="number" name="payable_rate" id="payable_rate" min="0" value="{{ rate.payable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="payable_rate_{{ rate.pk }}" class="col-form-label">Payable Rate:</label>
+            <input type="number" name="payable_rate" id="payable_rate_{{ rate.pk }}" min="0" value="{{ rate.payable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
           </div>
           <div class="mb-1">
-            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
-            <input type="number" name="billable_rate" id="billable_rate" min="0" value="{{ rate.billable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="billable_rate_{{ rate.pk }}" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate_{{ rate.pk }}" min="0" value="{{ rate.billable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -219,3 +243,36 @@
 </div>
 {% endfor %}
 {% endblock %}
+
+{% block scripts %}
+<script>
+  $(function() {
+    $('.worker-rate-select').on('change', function() {
+      var th = this;
+      var payableRate = $(th).parent().parent().find('.payable-rate');
+      var billableRate = $(th).parent().parent().find('.billable-rate');
+      if(this.value !== '') {
+        $.ajax({
+          url: '{% url "get_worker" %}',
+          data: {
+            'number': this.value,
+          },
+          success: function(data) {
+            if(data['status'] === "OK") {
+              payableRate.val(data['payable_hour_rate']);
+              payableRate.prop('disabled', false);
+              billableRate.val(data['payable_hour_rate']);
+              billableRate.prop('disabled', false);
+            }
+          }
+        });
+      } else {
+        payableRate.val(0);
+        payableRate.prop('disabled', true);
+        billableRate.val(0);
+        billableRate.prop('disabled', true);
+      }
+    });
+  })
+</script>
+{% endblock scripts %}

@@ -5,7 +5,7 @@ from weasyprint import HTML, CSS
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
@@ -109,7 +109,31 @@ def get_work_timesheet(session, worker):
     return (workdays, work_total_hours, work_total_payable_earnings, work_total_billable_earnings)
 
 
-# Worker-faced Views
+# AJAX views
+#
+
+def get_worker(request):
+    if request.is_ajax:
+        data = {}
+        worker_number = request.GET.get("number")
+        try:
+            worker = models.User.objects.get(pk=worker_number)
+        except models.User.DoesNotExist:
+            data["status"] = "ERR"
+        else:
+            data = {
+                "status": "OK",
+                "username": worker.username,
+                "first_name": worker.first_name,
+                "last_name": worker.last_name,
+                "email": worker.email,
+                "payable_hour_rate": worker.payable_hour_rate,
+            }
+        return JsonResponse(data)
+    else:
+        return HttpResponseBadRequest()
+
+# Worker-faced views
 #
 
 def index(request):
@@ -235,7 +259,7 @@ def dashboard(request):
     )
 
 
-# Staff Panel
+# Staff panel
 #
 
 @login_required
@@ -393,6 +417,37 @@ def add_personal_rate(request, project_number, session_number=None):
                 billable_rate = request.POST.get("billable_rate"),
             )
             rate.save()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+@login_required
+def recalculate_records(request, project_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        project = models.Project.objects.get(pk=project_number)
+        records = models.Record.objects.filter(project=project)
+        for record in records:
+            record_session = record.workday.session
+            try:
+                models.ProjectInvoice.objects.get(
+                    session=record_session,
+                    project=project,
+                )
+            except models.ProjectInvoice.DoesNotExist:
+                if record.total_hours and record.start_time:
+                    try:
+                        rate = models.PersonalRate.objects.get(
+                            project=record.project,
+                            worker=record.worker,
+                        )
+                    except models.PersonalRate.DoesNotExist:
+                        record.payable_earnings = record.total_hours * record.worker.payable_hour_rate
+                        record.billable_earnings = record.total_hours * record.project.billable_rate
+                    else:
+                        record.payable_earnings = record.total_hours * rate.payable_rate
+                        record.billable_earnings = record.total_hours * rate.billable_rate
+                    record.save()
         return redirect("projects", session_number=session.pk)
     else:
         return redirect("dashboard")

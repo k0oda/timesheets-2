@@ -1,0 +1,171 @@
+<h5 class="mt-5 text-center">Week {{ week_number }}</h5>
+<table class="table table-dark table-bordered table-striped mt-2">
+  <thead>
+    <tr>
+      <th scope="col" style="width: 10%;">Day</th>
+      <th scope="col" style="width: 10%;">Project</th>
+      <th scope="col" style="width: 8%;">Start Time</th>
+      <th scope="col" style="width: 8%;">Finish Time</th>
+      <th scope="col" style="width: 9%;">Total Hours</th>
+      <th scope="col" style="width: 7%;">Earnings</th>
+      <th scope="col" style="width: 30%;">Work Summary</th>
+      <th scope="col" class="text-center" style="width: 10%;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for workday in workdays %}
+    <tr>
+      <th scope="row">
+        {{ workday.0 }}
+        <br>
+        <span class="small">{{ workday.0.date|date:"d.m.y" }}</span>
+      </th>
+      <td>
+        {% for record in workday.1 %}
+        {{ record.project }}
+        <hr class="my-1">
+        {% endfor %}
+      </td>
+      <td>
+        {% for record in workday.1 %}
+        {{ record.start_time|date:"G:i" }}
+        <hr class="my-1">
+        {% endfor %}
+      </td>
+      <td>
+        {% for record in workday.1 %}
+        {% if record.finish_time %}
+        {{ record.finish_time|date:"G:i" }}
+        <hr class="my-1">
+        {% endif %}
+        {% endfor %}
+      </td>
+      <td>{{ workday.2 }}</td>
+      <td>${{ workday.3 }}</td>
+      <td>
+        {% for record in workday.1 %}
+        {% if record.summary %}
+        {{ record.summary }}
+        <hr class="my-1">
+        {% endif %}
+        {% endfor %}
+      </td>
+      <td class="align-middle text-center">
+        {% if workday.1 %}
+        {% if not workday.1.last.stopped %}
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#stopWorkModal">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#stop-circle"></use></svg>
+        </button>
+        <div class="modal fade" id="stopWorkModal" tabindex="-1" aria-labelledby="stopWorkModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <form action="{% url 'stop_work' workday.1.last.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title" id="stopWorkModalLabel">Enter work summary</h5>
+                </div>
+                <div class="modal-body">
+                  After your confirmation the timer will be stopped
+                  and time of finish will be recorded, total hours and earnings also will be counted and recorded
+                  <textarea name="summary" class="form-control bg-dark text-white mt-2" cols="30" rows="10" placeholder="Feature: Summary" required></textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if workday.1.last.stopped %}
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#selectRecordEditModal_{{ workday.0.pk }}">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#pencil-square"></use></svg>
+        </button>
+        <div class="modal fade" id="selectRecordEditModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="selectRecordEditModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="selectRecordEditModalLabel_{{ workday.0.pk }}">Select an record to edit</h5>
+              </div>
+              <div class="modal-body">
+                <select class="form-select bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success confirmRecordSelect">Confirm</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% for record in workday.1 %}
+        <div class="modal fade" id="editRecordModal_{{ record.pk }}" tabindex="-1" aria-labelledby="editRecordModalLabel_{{ record.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <form action="{% url 'edit_record' record.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editRecordModalLabel_{{ record.pk }}">Edit record</h5>
+                </div>
+                <div class="modal-body">
+                  <label for="record-project-select" class="form-label">Select a Project for this Record:</label>
+                  <select class="form-select bg-dark text-light mb-3" id="record-project-select" name="project" required>
+                    <option value="" selected>----</option>
+                    {% for project in projects %}
+                    <option value="{{ project.pk }}" {% if record.project.pk == project.pk %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <label for="summary" class="form-label">Work summary:</label>
+                  <textarea name="summary" id="summary" class="form-control bg-dark text-white" cols="30" rows="10" placeholder="Feature: Summary" required>{{ record.summary }}</textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecordModal_{{ workday.0.pk }}">
+          <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
+        </button>
+        <div class="modal fade" id="deleteRecordModal_{{ workday.0.pk }}" tabindex="-1" aria-labelledby="deleteRecordModalLabel_{{ workday.0.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content bg-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecordModalLabel_{{ workday.0.pk }}">Select an record to remove</h5>
+              </div>
+              <div class="modal-body">
+                <select class="form-select mt-2 bg-dark text-light" aria-label="Default select example">
+                  {% for record in workday.1 %}
+                  {% if forloop.first %}
+                  <option value="{{ record.pk }}" selected>{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% else %}
+                  <option value="{{ record.pk }}">{{ record.start_time|date:"G:i" }}{% if record.finish_time %} - {{ record.finish_time|date:"G:i" }}{% endif %}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success delete">Confirm</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
