@@ -2,9 +2,14 @@
 
 {% block tab_content %}
 <div class="row mt-2">
-  <button class="col-auto btn btn-outline-primary mx-auto" data-bs-toggle="modal" data-bs-target="#editWorkerModal">
-    Edit worker
-  </button>
+  <div class="col-auto mx-auto">
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editWorkerModal">
+      Edit worker
+    </button>
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#recalculateRecordsModal">
+      Recalculate records
+    </button>
+  </div>
 </div>
 <div class="modal fade" id="editWorkerModal" tabindex="-1" aria-labelledby="editWorkerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -71,6 +76,23 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#editWorkerModal">Close</button>
         <a href="{% url 'delete_worker' session.pk current_worker.pk %}" class="btn btn-success">Confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="recalculateRecordsModal" tabindex="-1" aria-labelledby="recalculateRecordsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="recalculateRecordsModalLabel">Confirm records recalculation?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation all records of {{ current_worker }} in
+        all opened work sessions will be recalculated using new settings
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <a href="{% url 'recalculate_worker_records' session.pk current_worker.pk %}" class="btn btn-success">Confirm</a>
       </div>
     </div>
   </div>

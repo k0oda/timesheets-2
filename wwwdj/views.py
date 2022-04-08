@@ -421,8 +421,9 @@ def add_personal_rate(request, project_number, session_number=None):
     else:
         return redirect("dashboard")
 
+
 @login_required
-def recalculate_records(request, project_number, session_number=None):
+def recalculate_project_records(request, project_number, session_number=None):
     if request.user.is_staff:
         session = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
@@ -555,6 +556,38 @@ def edit_worker(request, worker_number, session_number=None):
             worker.is_staff=is_staff
             worker.save()
         return redirect("worker_timesheet", session.pk, worker_number)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def recalculate_worker_records(request, worker_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        worker = models.User.objects.get(pk=worker_number)
+        records = models.Record.objects.filter(worker=worker)
+        for record in records:
+            record_session = record.workday.session
+            try:
+                models.ProjectInvoice.objects.get(
+                    session=record_session,
+                    project=record.project,
+                )
+            except models.ProjectInvoice.DoesNotExist:
+                if record.total_hours and record.start_time:
+                    try:
+                        rate = models.PersonalRate.objects.get(
+                            project=record.project,
+                            worker=worker,
+                        )
+                    except models.PersonalRate.DoesNotExist:
+                        record.payable_earnings = record.total_hours * record.worker.payable_hour_rate
+                        record.billable_earnings = record.total_hours * record.project.billable_rate
+                    else:
+                        record.payable_earnings = record.total_hours * rate.payable_rate
+                        record.billable_earnings = record.total_hours * rate.billable_rate
+                    record.save()
+        return redirect("worker_timesheet", session_number=session.pk, worker_number=worker_number)
     else:
         return redirect("dashboard")
 
