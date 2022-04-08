@@ -138,7 +138,7 @@
         all opened work sessions will be recalculated using new settings
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-target="#editPersonalRatesModal_{{ project.pk }}" data-bs-toggle="modal">Close</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
         <a href="{% url 'recalculate_records' session.pk project.pk %}" class="btn btn-success">Confirm</a>
       </div>
     </div>
