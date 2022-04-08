@@ -34,7 +34,9 @@ Settings | Vidicode Timesheets
       <input type="password" name="new_password" id="new_password" placeholder="-----" class="form-control bg-dark text-white">
     </div>
     <a type="button" href="{% url 'dashboard' %}" class="col-auto btn btn-primary">Go to dashboard</a>
-    <button type="submit" class="col-auto btn btn-success">Submit</btn>
+    <div class="float-end">
+      <button type="submit" class="col-auto btn btn-success">Submit</btn>
+    </div>
   </form>
 </div>
 {% endblock content %}

@@ -25,12 +25,8 @@
             <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required></textarea>
           </div>
           <div class="mb-1">
-            <label for="payable_hour-rate-increase" class="col-form-label">Payable Hour Rate Increase:</label>
-            <input type="number" name="payable_hour_rate_increase" id="payable_hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
-          </div>
-          <div class="mb-1">
-            <label for="billable_hour-rate-increase" class="col-form-label">Billable Hour Rate Increase:</label>
-            <input type="number" name="billable_hour_rate_increase" id="billable_hour-rate-increase" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -41,17 +37,17 @@
     </div>
   </div>
 </div>
-{% for project, work in projects_work.items %}
+{% for project, new_personal_rate_workers in projects.items %}
 <div class="row mb-4">
   <div class="col-12">
     <div class="card bg-dark">
       <div class="card-body">
         <h3 class="card-title">{{ project }}</h3>
-        <h6 class="card-subtitle mb-1">${{ project.payable_hour_rate_increase }} payable hour rate increase</h6>
-        <h6 class="card-subtitle mb-2">${{ project.billable_hour_rate_increase }} billable hour rate increase</h6>
+        <h6 class="card-subtitle mb-2">${{ project.billable_rate }} billable rate</h6>
         <hr>
         <p class="card-text">{{ project.description }}</p>
         <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ project.pk }}">Edit</button>
+        <button class="btn btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#editPersonalRatesModal_{{ project.pk }}">Manage Personal Rates</button>
         <button class="btn btn-outline-danger mt-2 float-end" data-bs-toggle="modal" data-bs-target="#deleteProjectModal_{{ project.pk }}">
           <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
           Delete
@@ -78,12 +74,8 @@
             <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required>{{ project.description }}</textarea>
           </div>
           <div class="mb-1">
-            <label for="payable_hour-rate-increase" class="col-form-label">Payable Hour Rate Increase:</label>
-            <input type="number" name="payable_hour_rate_increase" id="payable_hour-rate-increase" min="0" value="{{ project.payable_hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
-          </div>
-          <div class="mb-1">
-            <label for="billable_hour-rate-increase" class="col-form-label">Billable Hour Rate Increase:</label>
-            <input type="number" name="billable_hour_rate_increase" id="billable_hour-rate-increase" min="0" value="{{ project.billable_hour_rate_increase }}" step="0.5" class="form-control bg-dark text-white" required>
+            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -94,6 +86,120 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="editPersonalRatesModal_{{ project.pk }}" tabindex="-1" aria-labelledby="editPersonalRatesModalLabel_{{ project.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editPersonalRatesModalLabel_{{ project.pk }}">Edit personal rates for the project</h5>
+      </div>
+      <div class="modal-body">
+        {% for rate in project.personal_rates.all %}
+        <div class="row">
+          <div class="col-9">
+            <h5>{{ rate.worker }}</h5>
+            <h6 class="mb-2">${{ rate.payable_rate }} payable rate</h6>
+            <h6 class="mb-2">${{ rate.billable_rate }} billable rate</h6>
+          </div>
+          <div class="col-3">
+            <button class="w-100 btn btn-outline-primary mb-2" data-bs-toggle="modal" data-bs-target="#editRateModal_{{ rate.pk }}">Edit</button>
+            <button class="w-100 btn btn-outline-danger float-end" data-bs-toggle="modal" data-bs-target="#deleteRateModal_{{ rate.pk }}">
+              <svg class="bi mb-1" fill="currentColor" width="16" height="16"><use xlink:href="#trash"></use></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+        {% if not forloop.last %}
+        <hr>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRateModal">Add new rate</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addRateModal" tabindex="-1" aria-labelledby="addRateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <form action="{% url 'add_personal_rate' session.pk project.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addRateModalLabel">Add personal rate</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-1">
+            <label for="worker-select" class="col-form-label">Worker:</label>
+            <select class="form-select bg-dark text-light" name="worker" id="worker-select" required>
+              <option value="" selected>----</option>
+              {% for worker in new_personal_rate_workers %}
+              <option value="{{ worker.pk }}">{{ worker }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-1">
+            <label for="payable_rate" class="col-form-label">Payable Rate:</label>
+            <input type="number" name="payable_rate" id="payable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate" min="0" value="0" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-target="#editPersonalRatesModal_{{ project.pk }}" data-bs-toggle="modal">Close</button>
+          <button type="submit" class="btn btn-success">Confirm</btn>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% for rate in project.personal_rates.all %}
+<div class="modal fade" id="editRateModal_{{ rate.pk }}" tabindex="-1" aria-labelledby="editRateModalLabel_{{ rate.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <form action="{% url 'edit_personal_rate' session.pk project.pk rate.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editRateModalLabel_{{ rate.pk }}">Edit personal rate for {{ rate.worker }}</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-1">
+            <label for="payable_rate" class="col-form-label">Payable Rate:</label>
+            <input type="number" name="payable_rate" id="payable_rate" min="0" value="{{ rate.payable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+          <div class="mb-1">
+            <label for="billable_rate" class="col-form-label">Billable Rate:</label>
+            <input type="number" name="billable_rate" id="billable_rate" min="0" value="{{ rate.billable_rate }}" step="0.5" class="form-control bg-dark text-white" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-target="#editPersonalRatesModal_{{ project.pk }}" data-bs-toggle="modal">Close</button>
+          <button type="submit" class="btn btn-success">Confirm</btn>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="deleteRateModal_{{ rate.pk }}" tabindex="-1" aria-labelledby="deleteRateModalLabel_{{ rate.pk }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteRateModalLabel_{{ rate.pk }}">Confirm personal rate delete?</h5>
+      </div>
+      <div class="modal-body">
+        After your confirmation the rate will be
+        permanently deleted
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-target="#editPersonalRatesModal_{{ project.pk }}" data-bs-toggle="modal">Close</button>
+        <a href="{% url 'delete_personal_rate' session.pk project.pk rate.pk %}" class="btn btn-success">Confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 <div class="modal fade" id="deleteProjectModal_{{ project.pk }}" tabindex="-1" aria-labelledby="deleteProjectModalLabel_{{ project.pk }}" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark">

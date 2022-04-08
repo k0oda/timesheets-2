@@ -40,14 +40,24 @@ urlpatterns = [
     path("dashboard/staff/<int:session_number>/<int:worker_number>/", views.staff_dashboard, name="staff_dashboard"),
     path("dashboard/staff/totals/", views.totals, name="totals"),
     path("dashboard/staff/totals/<int:session_number>/", views.totals, name="totals"),
+
+    # Projects Management
     path("dashboard/staff/projects/", views.projects, name="projects"),
     path("dashboard/staff/projects/<int:session_number>/", views.projects, name="projects"),
     path("dashboard/staff/projects/add/", views.add_project, name="add_project"),
     path("dashboard/staff/projects/<int:session_number>/add/", views.add_project, name="add_project"),
     path("dashboard/staff/projects/edit/<int:project_number>/", views.edit_project, name="edit_project"),
     path("dashboard/staff/projects/<int:session_number>/edit/<int:project_number>/", views.edit_project, name="edit_project"),
-    path("dashboard/staff/projects/delete/<int:project_number>/", views.edit_project, name="edit_project"),
+    path("dashboard/staff/projects/delete/<int:project_number>/", views.delete_project, name="delete_project"),
     path("dashboard/staff/projects/<int:session_number>/delete/<int:project_number>/", views.delete_project, name="delete_project"),
+    path("dashboard/staff/projects/<int:project_number>/rates/add/", views.add_personal_rate, name="add_personal_rate"),
+    path("dashboard/staff/projects/<int:session_number>/<int:project_number>/rates/add/", views.add_personal_rate, name="add_personal_rate"),
+    path("dashboard/staff/projects/<int:project_number>/rates/edit/<int:rate_number>/", views.edit_personal_rate, name="edit_personal_rate"),
+    path("dashboard/staff/projects/<int:session_number>/<int:project_number>/rates/edit/<int:rate_number>/", views.edit_personal_rate, name="edit_personal_rate"),
+    path("dashboard/staff/projects/<int:project_number>/rates/delete/<int:rate_number>/", views.delete_personal_rate, name="delete_personal_rate"),
+    path("dashboard/staff/projects/<int:session_number>/<int:project_number>/rates/delete/<int:rate_number>/", views.delete_personal_rate, name="delete_personal_rate"),
+
+    # Workers Management
     path("dashboard/staff/worker/<int:worker_number>/", views.worker_timesheet, name="worker_timesheet"),
     path("dashboard/staff/worker/<int:session_number>/<int:worker_number>/", views.worker_timesheet, name="worker_timesheet"),
     path("dashboard/staff/worker/<int:worker_number>/edit/", views.edit_worker, name="edit_worker"),
@@ -56,6 +66,8 @@ urlpatterns = [
     path("dashboard/staff/worker/<int:session_number>/<int:worker_number>/delete/", views.delete_worker, name="delete_worker"),
     path("dashboard/staff/add_worker/", views.add_worker, name="add_worker"),
     path("dashboard/staff/add_worker/<int:session_number>/", views.add_worker, name="add_worker"),
+
+    # Invoices
     path("dashboard/staff/sign_invoice/<int:session_number>/<int:project_number>/", views.sign_invoice, name="sign_invoice"),
     path("dashboard/staff/invoice/<int:session_number>/<int:project_number>/", views.download_invoice, name="download_invoice"),
 ]

@@ -105,7 +105,7 @@ def get_work_timesheet(session, worker):
         workdays[session.starting_date + datetime.timedelta(days=7) <= workday.date if 1 else 0].append([workday, records, hours, payable_earnings, billable_earnings])
         work_total_hours += hours
         work_total_payable_earnings += payable_earnings
-        work_total_billable_earnings  += billable_earnings
+        work_total_billable_earnings += billable_earnings
     return (workdays, work_total_hours, work_total_payable_earnings, work_total_billable_earnings)
 
 
@@ -159,8 +159,17 @@ def stop_work(request, record_id):
         elif total_minutes > 8 and total_minutes <= 45:
             total_hours += 0.5
         record.total_hours = total_hours
-        record.payable_earnings = record.total_hours * float(record.worker.payable_hour_rate + record.project.payable_hour_rate_increase)
-        record.billable_earnings = record.total_hours * float(record.worker.billable_hour_rate + record.project.billable_hour_rate_increase)
+        try:
+            rate = models.PersonalRate.objects.get(
+                project=record.project,
+                worker=request.user,
+            )
+        except models.PersonalRate.DoesNotExist:
+            record.payable_earnings = record.total_hours * float(record.worker.payable_hour_rate)
+            record.billable_earnings = record.total_hours * float(record.project.billable_rate)
+        else:
+            record.payable_earnings = record.total_hours * float(rate.payable_rate)
+            record.billable_earnings = record.total_hours * float(rate.billable_rate)
         summary = request.POST.get("summary")
         record.summary = summary
         record.stopped = True
@@ -301,11 +310,19 @@ def projects(request, session_number=None):
             next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
         except models.WorkSession.DoesNotExist:
             next_session_number = None
-        projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
-        projects_work = {}
-        for project in projects:
-            projects_work[project] = get_project_work(session.pk, project.pk)["meta"]
+        projects = {}
+        for project in models.Project.objects.all():
+            new_personal_rates_workers = []
+            for worker in workers:
+                try:
+                    models.PersonalRate.objects.get(
+                        project=project,
+                        worker=worker
+                    )
+                except models.PersonalRate.DoesNotExist:
+                    new_personal_rates_workers.append(worker)
+            projects[project] = new_personal_rates_workers
         return render(
             request,
             "pages/staff/projects.html",
@@ -314,7 +331,7 @@ def projects(request, session_number=None):
                 "previous_session_number": previous_session_number,
                 "next_session_number": next_session_number,
                 "workers": workers,
-                "projects_work": projects_work,
+                "projects": projects,
             }
         )
     else:
@@ -329,8 +346,7 @@ def add_project(request, session_number=None):
             project = models.Project.objects.create(
                 name = request.POST.get("name"),
                 description = request.POST.get("description"),
-                payable_hour_rate_increase = request.POST.get("payable_hour_rate_increase"),
-                billable_hour_rate_increase = request.POST.get("billable_hour_rate_increase"),
+                billable_rate = request.POST.get("billable_rate"),
             )
             project.save()
         return redirect("projects", session_number=session.pk)
@@ -346,8 +362,7 @@ def edit_project(request, project_number, session_number=None):
             project = models.Project.objects.get(pk=project_number)
             project.name = request.POST.get("name")
             project.description = request.POST.get("description")
-            project.payable_hour_rate_increase = request.POST.get("payable_hour_rate_increase")
-            project.billable_hour_rate_increase = request.POST.get("billable_hour_rate_increase")
+            project.billable_rate = request.POST.get("billable_rate")
             project.save()
         return redirect("projects", session_number=session.pk)
     else:
@@ -359,6 +374,51 @@ def delete_project(request, project_number, session_number=None):
     if request.user.is_staff:
         session = perform_session(session_number)
         models.Project.objects.get(pk=project_number).delete()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def add_personal_rate(request, project_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            project = models.Project.objects.get(pk=project_number)
+            worker = get_user_model().objects.get(pk=request.POST.get("worker"))
+            rate = models.PersonalRate.objects.create(
+                worker = worker,
+                project = project,
+                payable_rate = request.POST.get("payable_rate"),
+                billable_rate = request.POST.get("billable_rate"),
+            )
+            rate.save()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def edit_personal_rate(request, project_number, rate_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        if request.method == "POST":
+            project = models.Project.objects.get(pk=project_number)
+            rate = models.PersonalRate.objects.get(pk=rate_number, project=project)
+            rate.payable_rate = request.POST.get("payable_rate")
+            rate.billable_rate = request.POST.get("billable_rate")
+            rate.save()
+        return redirect("projects", session_number=session.pk)
+    else:
+        return redirect("dashboard")
+
+
+@login_required
+def delete_personal_rate(request, project_number, rate_number, session_number=None):
+    if request.user.is_staff:
+        session = perform_session(session_number)
+        project = models.Project.objects.get(pk=project_number)
+        models.PersonalRate.objects.get(pk=rate_number, project=project).delete()
         return redirect("projects", session_number=session.pk)
     else:
         return redirect("dashboard")
@@ -414,7 +474,6 @@ def add_worker(request, session_number=None):
                 first_name=request.POST.get('first_name'),
                 last_name=request.POST.get('last_name'),
                 payable_hour_rate=request.POST.get('payable_hour_rate'),
-                billable_hour_rate=request.POST.get('billable_hour_rate'),
                 password=request.POST.get('password'),
                 is_staff=is_staff,
             )
@@ -438,7 +497,6 @@ def edit_worker(request, worker_number, session_number=None):
             worker.first_name=request.POST.get('first_name')
             worker.last_name=request.POST.get('last_name')
             worker.payable_hour_rate=request.POST.get('payable_hour_rate')
-            worker.billable_hour_rate=request.POST.get('billable_hour_rate')
             worker.is_staff=is_staff
             worker.save()
         return redirect("worker_timesheet", session.pk, worker_number)

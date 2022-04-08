@@ -11,7 +11,6 @@ from wwwdj import model_choices as choices
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     payable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    billable_hour_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "password"]
@@ -23,11 +22,20 @@ class User(AbstractUser):
 class Project(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    payable_hour_rate_increase = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    billable_hour_rate_increase = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    billable_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     def __str__(self):
         return self.name
+
+
+class PersonalRate(models.Model):
+    worker = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="personal_rates")
+    payable_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    billable_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.worker} - {self.payable_rate}/{self.billable_rate}"
 
 
 class WorkSession(models.Model):

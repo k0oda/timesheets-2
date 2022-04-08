@@ -621,9 +621,7 @@
               "
             >
               <span class="c8">
-                {% for record in work_records.records %}
-                {{ record.1 }} hours at ${{ record.0.billable_hour_rate|add:project.billable_hour_rate_increase }} per hour {% if not forloop.last %} + {% endif %} = ${{ work_records.meta.total_billable_earnings }}
-                {% endfor %}
+                {{ work_records.meta.total_hours }} billable hours at ${{ project.billable_rate }} per hour = ${{ work_records.meta.total_billable_earnings }}
               </span>
             </p>
           </td>

@@ -52,8 +52,7 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 8%;">Start Time</th>
       <th scope="col" style="width: 8%;">Finish Time</th>
       <th scope="col" style="width: 9%;">Total Hours</th>
-      <th scope="col" style="width: 3,5%;">Payable</th>
-      <th scope="col" style="width: 3,5%;">Billable</th>
+      <th scope="col" style="width: 7%;">Payable</th>
       <th scope="col" style="width: 30%;">Work Summary</th>
       <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
@@ -88,7 +87,6 @@ Dashboard | Vidicode Timesheets
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
-      <td>${{ workday.4 }}</td>
       <td>
         {% for record in workday.1 %}
         {% if record.summary %}
@@ -226,8 +224,7 @@ Dashboard | Vidicode Timesheets
       <th scope="col" style="width: 8%;">Start Time</th>
       <th scope="col" style="width: 8%;">Finish Time</th>
       <th scope="col" style="width: 9%;">Total Hours</th>
-      <th scope="col" style="width: 3,5%;">Payable</th>
-      <th scope="col" style="width: 3,5%;">Billable</th>
+      <th scope="col" style="width: 7%;">Earnings</th>
       <th scope="col" style="width: 30%;">Work Summary</th>
       <th scope="col" class="text-center" style="width: 10%;">Actions</th>
     </tr>
@@ -262,7 +259,6 @@ Dashboard | Vidicode Timesheets
       </td>
       <td>{{ workday.2 }}</td>
       <td>${{ workday.3 }}</td>
-      <td>${{ workday.4 }}</td>
       <td>
         {% for record in workday.1 %}
         {% if record.summary %}
