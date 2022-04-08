@@ -90,7 +90,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark">
       <div class="modal-header">
-        <h5 class="modal-title" id="editPersonalRatesModalLabel_{{ project.pk }}">Edit personal rates for the project</h5>
+        <h5 class="modal-title" id="editPersonalRatesModalLabel_{{ project.pk }}">Edit personal rates for {{ project.name }}</h5>
       </div>
       <div class="modal-body">
         {% for rate in project.personal_rates.all %}
@@ -114,19 +114,19 @@
         {% endfor %}
       </div>
       <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRateModal">Add new rate</button>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRateModal_{{ project.pk }}">Add new rate</button>
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
-<div class="modal fade" id="addRateModal" tabindex="-1" aria-labelledby="addRateModalLabel" aria-hidden="true">
+<div class="modal fade" id="addRateModal_{{ project.pk }}" tabindex="-1" aria-labelledby="addRateModalLabel_{{ project.pk }}" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark">
       <form action="{% url 'add_personal_rate' session.pk project.pk %}" method="POST">
         {% csrf_token %}
         <div class="modal-header">
-          <h5 class="modal-title" id="addRateModalLabel">Add personal rate</h5>
+          <h5 class="modal-title" id="addRateModalLabel_{{ project.pk }}">Add personal rate for {{ project.name }}</h5>
         </div>
         <div class="modal-body">
           <div class="mb-1">
