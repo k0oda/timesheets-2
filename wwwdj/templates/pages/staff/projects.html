@@ -21,8 +21,12 @@
             <input type="text" name="name" id="name" class="form-control bg-dark text-white" required>
           </div>
           <div class="mb-1">
+            <label for="client_name" class="col-form-label">Client Name:</label>
+            <input type="text" name="client_name" id="client_name" class="form-control bg-dark text-white">
+          </div>
+          <div class="mb-1">
             <label for="description" class="col-form-label">Description:</label>
-            <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10" required></textarea>
+            <textarea name="description" class="form-control bg-dark text-white" id="description" cols="30" rows="10"></textarea>
           </div>
           <div class="mb-1">
             <label for="billable_rate" class="col-form-label">Billable Rate:</label>
@@ -77,8 +81,12 @@
             <input type="text" name="name" id="name_{{ project.pk }}" value="{{ project.name }}" class="form-control bg-dark text-white" required>
           </div>
           <div class="mb-1">
+            <label for="client_name_{{ project.pk }}" class="col-form-label">Client Name:</label>
+            <input type="text" name="client_name" id="client_name_{{ project.pk }}" value="{{ project.client_name }}" class="form-control bg-dark text-white">
+          </div>
+          <div class="mb-1">
             <label for="description_{{ project.pk }}" class="col-form-label">Description:</label>
-            <textarea name="description" class="form-control bg-dark text-white" id="description_{{ project.pk }}" cols="30" rows="10" required>{{ project.description }}</textarea>
+            <textarea name="description" class="form-control bg-dark text-white" id="description_{{ project.pk }}" cols="30" rows="10">{{ project.description }}</textarea>
           </div>
           <div class="mb-1">
             <label for="billable_rate_{{ project.pk }}" class="col-form-label">Billable Rate:</label>

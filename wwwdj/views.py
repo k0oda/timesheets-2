@@ -370,6 +370,7 @@ def add_project(request, session_number=None):
         if request.method == "POST":
             project = models.Project.objects.create(
                 name = request.POST.get("name"),
+                client_name = request.POST.get("client_name"),
                 description = request.POST.get("description"),
                 billable_rate = request.POST.get("billable_rate"),
             )
@@ -386,6 +387,7 @@ def edit_project(request, project_number, session_number=None):
         if request.method == "POST":
             project = models.Project.objects.get(pk=project_number)
             project.name = request.POST.get("name")
+            project.client_name = request.POST.get("client_name")
             project.description = request.POST.get("description")
             project.billable_rate = request.POST.get("billable_rate")
             project.save()
