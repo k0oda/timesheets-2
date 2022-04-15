@@ -133,6 +133,7 @@ def get_worker(request):
     else:
         return HttpResponseBadRequest()
 
+
 # Worker-faced views
 #
 

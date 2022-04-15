@@ -487,7 +487,7 @@
             <p class="c9"><span class="c2">PO Box 6386</span></p>
             <p class="c9"><span class="c2">Boise, ID 83707 &nbsp;</span></p>
             <p class="c22 subtitle" id="h.f9dtygnsfopk">
-              <span class="c31 c33">INVOICE Property Facto</span>
+              <span class="c31 c33">INVOICE {% if project.client_name %}{{ project.client_name }}{% else %}{{ project.name }}{% endif %}</span>
             </p>
             <h5 class="c17" id="h.rm9y3hcs0pf">
               <span class="c27">Project</span><span>: {{ project.name }}</span>
@@ -509,7 +509,7 @@
             <p class="c5 c20"><span class="c1"></span></p>
           </td>
           <td class="c3" colspan="1" rowspan="1">
-            <p class="c5"><span class="c1">Property Facto</span></p>
+            <p class="c5"><span class="c1">{% if project.client_name %}{{ project.client_name }}{% else %}{{ project.name }}{% endif %}</span></p>
           </td>
           <td class="c10" colspan="1" rowspan="1">
             <p class="c5"><span class="c1">Actual Hours</span></p>

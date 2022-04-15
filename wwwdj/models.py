@@ -21,6 +21,7 @@ class User(AbstractUser):
 
 class Project(models.Model):
     name = models.CharField(max_length=255)
+    client_name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     billable_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
