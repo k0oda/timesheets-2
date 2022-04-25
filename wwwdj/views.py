@@ -39,7 +39,17 @@ def perform_session(session_number=None):
             session.save()
     else:
         session = models.WorkSession.objects.get(pk=session_number)
-    return session
+    previous_session_number = models.WorkSession.objects.filter(finish_date__lt=session.starting_date).order_by("starting_date")
+    if not previous_session_number.exists():
+        previous_session_number = None
+    else:
+        previous_session_number = previous_session_number.last().pk
+    next_session_number = models.WorkSession.objects.filter(starting_date__gt=session.finish_date).order_by("starting_date")
+    if not next_session_number.exists():
+        next_session_number = None
+    else:
+        next_session_number = next_session_number.first().pk
+    return session, previous_session_number, next_session_number
 
 
 def get_project_work(session_number, project_number):
@@ -283,15 +293,7 @@ def staff_dashboard(request, session_number=None, worker_number=None):
 @login_required
 def totals(request, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
-        try:
-            previous_session_number = models.WorkSession.objects.get(pk=session.pk - 1).pk
-        except models.WorkSession.DoesNotExist:
-            previous_session_number = None
-        try:
-            next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
-        except models.WorkSession.DoesNotExist:
-            next_session_number = None
+        session, previous_session_number, next_session_number = perform_session(session_number)
         projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         session_total_hours = 0
@@ -326,15 +328,7 @@ def totals(request, session_number=None):
 @login_required
 def projects(request, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
-        try:
-            previous_session_number = models.WorkSession.objects.get(pk=session.pk - 1).pk
-        except models.WorkSession.DoesNotExist:
-            previous_session_number = None
-        try:
-            next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
-        except models.WorkSession.DoesNotExist:
-            next_session_number = None
+        session, previous_session_number, next_session_number = perform_session(session_number)
         workers = get_user_model().objects.all()
         projects = {}
         for project in models.Project.objects.all():
@@ -486,15 +480,7 @@ def delete_personal_rate(request, project_number, rate_number, session_number=No
 @login_required
 def worker_timesheet(request, worker_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
-        try:
-            previous_session_number = models.WorkSession.objects.get(pk=session.pk - 1).pk
-        except models.WorkSession.DoesNotExist:
-            previous_session_number = None
-        try:
-            next_session_number = models.WorkSession.objects.get(pk=session.pk + 1).pk
-        except models.WorkSession.DoesNotExist:
-            next_session_number = None
+        session, previous_session_number, next_session_number = perform_session(session_number)
         projects = models.Project.objects.all()
         workers = get_user_model().objects.all()
         current_worker = get_user_model().objects.get(pk=worker_number)
