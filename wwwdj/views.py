@@ -360,7 +360,7 @@ def projects(request, session_number=None):
 @login_required
 def add_project(request, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             project = models.Project.objects.create(
                 name = request.POST.get("name"),
@@ -377,7 +377,7 @@ def add_project(request, session_number=None):
 @login_required
 def edit_project(request, project_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             project = models.Project.objects.get(pk=project_number)
             project.name = request.POST.get("name")
@@ -393,7 +393,7 @@ def edit_project(request, project_number, session_number=None):
 @login_required
 def delete_project(request, project_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         models.Project.objects.get(pk=project_number).delete()
         return redirect("projects", session_number=session.pk)
     else:
@@ -403,7 +403,7 @@ def delete_project(request, project_number, session_number=None):
 @login_required
 def add_personal_rate(request, project_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             project = models.Project.objects.get(pk=project_number)
             worker = get_user_model().objects.get(pk=request.POST.get("worker"))
@@ -422,7 +422,7 @@ def add_personal_rate(request, project_number, session_number=None):
 @login_required
 def recalculate_project_records(request, project_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
         records = models.Record.objects.filter(project=project)
         for record in records:
@@ -454,7 +454,7 @@ def recalculate_project_records(request, project_number, session_number=None):
 @login_required
 def edit_personal_rate(request, project_number, rate_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             project = models.Project.objects.get(pk=project_number)
             rate = models.PersonalRate.objects.get(pk=rate_number, project=project)
@@ -469,7 +469,7 @@ def edit_personal_rate(request, project_number, rate_number, session_number=None
 @login_required
 def delete_personal_rate(request, project_number, rate_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
         models.PersonalRate.objects.get(pk=rate_number, project=project).delete()
         return redirect("projects", session_number=session.pk)
@@ -508,7 +508,7 @@ def worker_timesheet(request, worker_number, session_number=None):
 @login_required
 def add_worker(request, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             is_staff = False
             if "is_staff" in request.POST:
@@ -531,7 +531,7 @@ def add_worker(request, session_number=None):
 @login_required
 def edit_worker(request, worker_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         if request.method == "POST":
             is_staff = False
             if "is_staff" in request.POST:
@@ -552,7 +552,7 @@ def edit_worker(request, worker_number, session_number=None):
 @login_required
 def recalculate_worker_records(request, worker_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         worker = models.User.objects.get(pk=worker_number)
         records = models.Record.objects.filter(worker=worker)
         for record in records:
@@ -584,7 +584,7 @@ def recalculate_worker_records(request, worker_number, session_number=None):
 @login_required
 def delete_worker(request, worker_number, session_number=None):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         get_user_model().objects.get(pk=worker_number).delete()
         return redirect("staff_dashboard", session.pk)
     else:
@@ -594,7 +594,7 @@ def delete_worker(request, worker_number, session_number=None):
 @login_required
 def sign_invoice(request, session_number, project_number):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
         work_records = get_project_work(session.pk, project.pk)
         invoice = models.ProjectInvoice.objects.create(
@@ -649,7 +649,7 @@ def sign_invoice(request, session_number, project_number):
 @login_required
 def download_invoice(request, session_number, project_number):
     if request.user.is_staff:
-        session = perform_session(session_number)
+        session, previous_session_number, next_session_number = perform_session(session_number)
         project = models.Project.objects.get(pk=project_number)
         invoice = models.ProjectInvoice.objects.get(session=session, project=project)
         return FileResponse(open(invoice.invoice.name, "rb"), as_attachment=True, filename=invoice.filename())
